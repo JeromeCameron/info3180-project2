@@ -7,7 +7,7 @@ class Users(db.Model):
     __tablename__ = 'user_profiles'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(80))
+    username = db.Column(db.String(80), unique=True)
     firstname = db.Column(db.String(80))
     lastname = db.Column(db.String(80))
     email = db.Column(db.String(80), unique=True)
@@ -17,14 +17,13 @@ class Users(db.Model):
     profile_photo = db.Column(db.String(150))
     password = db.Column(db.String(255), nullable=False)
     
-    def __init__(self, username, firstname, lastname, email, location, biography, joined_on, profile_photo, password):
+    def __init__(self, username, firstname, lastname, email, location, biography, profile_photo, password):
         self.username = username
         self.firstname = firstname
         self.lastname = lastname
         self.email = email
         self.location = location
         self.biography = biography
-        self.joined_on = joined_on
         self.profile_photo = profile_photo
         self.password =  generate_password_hash(password, method='pbkdf2:sha256')
         

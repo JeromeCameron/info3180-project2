@@ -1,4 +1,4 @@
-user1 = Users('mrobb','Monique','Robb','mail2@mail.com','Kingston','test','2019-3-2','2019-3-2','password1234')
+user1 = Users('probb','Patrice','Robb','mail3@mail.com','Kingston','test','photo','password1234')
 s
 id | firstname | lastname |     email     | location | biography |      joined_on      | profile_photo | password | username 
 ----+-----------+----------+---------------+----------+-----------+---------------------+---------------+----------+----------

@@ -38,7 +38,7 @@ def register():
         profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_name))
              
         #connect to database and save data
-        user_profile = Users(username,firstname, lastname, email, location, biography,'2019-3-2', photo_name, password )
+        user_profile = Users(username,firstname, lastname, email, location, biography, photo_name, password )
         db.session.add(user_profile)
         db.session.commit()
         
