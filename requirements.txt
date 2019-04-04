@@ -1,19 +1,19 @@
 # ----------------------
 # Flask
 # ----------------------
-click==6.7
-Flask==1.0.2
-Flask-WTF==0.14.2
-itsdangerous==0.24
-Jinja2==2.10
-MarkupSafe==1.0
-Werkzeug==0.14.1
-WTForms==2.2.1
+flask
+Flask-WTF
 Flask-SQLAlchemy
 Flask-Migrate
 Flask-Script
 Flask-Login
 psycopg2
+click==6.7
+itsdangerous==0.24
+Jinja2==2.10
+MarkupSafe==1.0
+Werkzeug==0.14.1
+WTForms==2.2.1
 
 # ----------------------
 # Production Server

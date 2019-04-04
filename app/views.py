@@ -1,17 +1,57 @@
 from app import app, db
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user, login_required
-from app.models import UserProfile
-from flask import session
-from app.forms import profileForm
+from app.models import Users, Posts, Likes, Follows
+from app.forms import profileForm, posts, likes, follows
 from datetime import datetime, date
 import os
 from werkzeug.utils import secure_filename
 
 
-###
-# Routing for your application.
-###
+#________________________ API ROUTES (endpoints) ______________________________#
+
+#Accepts user information and save it to the database
+@app.route('/api/users/register', methods=["POST"])
+def register():
+    return "test"
+
+#Accepts login credentials as username and password    
+@app.route('/api/auth/login', methods=["POST"])
+def login():
+    return "test"
+
+#logout user
+@app.route('/api/auth/logout', methods=["GET"])
+def logout():
+    return "test"
+
+#Used for adding posts to users feed
+@app.route('/api/users/{user_id}/posts', methods=["POST"])
+def addPost():
+    return "test"
+
+#Returns a user's posts    
+@app.route('/api/users/{user_id}/posts', methods=["GET"])
+def viewPost():
+    return "test"
+
+#Create a follow relationship between the current user and the target user   
+@app.route('/api/users/{user_id}/follow', methods=["POST"])
+def follow():
+    return "test"
+
+#Return all posts for all users   
+@app.route('/api/post', methods=["GET"])
+def allPost():
+    return "test"
+    
+#Set a like on the current Post by the logged user    
+@app.route('/api/post/{post_id}/like', methods=["POST"])
+def addLike():
+    return "test"
+
+#______________________________ END API Routes ________________________________#
+
 
 #Render home page
 @app.route('/')
