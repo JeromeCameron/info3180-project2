@@ -6,7 +6,7 @@ class Users(db.Model):
     
     __tablename__ = 'user_profiles'
 
-    ID = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(80))
     firstname = db.Column(db.String(80))
     lastname = db.Column(db.String(80))
