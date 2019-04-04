@@ -1,0 +1,5 @@
+user1 = Users('mrobb','Monique','Robb','mail2@mail.com','Kingston','test','2019-3-2','2019-3-2','password1234')
+s
+id | firstname | lastname |     email     | location | biography |      joined_on      | profile_photo | password | username 
+----+-----------+----------+---------------+----------+-----------+---------------------+---------------+----------+----------
+  1 | Jerome    | Cameron  | mail@mail.com | Kingston | test      | 2019-02-01 00:00:00 |               | password | jcameron

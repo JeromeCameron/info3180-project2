@@ -6,8 +6,9 @@ from werkzeug.utils import secure_filename
 
 
 class profileForm(FlaskForm):
-    firstName = StringField('First Name', validators=[InputRequired()])
-    lastName = StringField('Last Name', validators=[InputRequired()])
+    username = StringField('User Name', validators=[InputRequired()])
+    firstname = StringField('First Name', validators=[InputRequired()])
+    lastname = StringField('Last Name', validators=[InputRequired()])
     email = StringField('Email', validators=[InputRequired(), Email()])
     location = StringField('Location', validators=[InputRequired()])
     biography = TextAreaField('Biography', validators=[InputRequired()])
