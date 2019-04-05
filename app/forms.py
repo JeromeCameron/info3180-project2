@@ -20,11 +20,6 @@ class posts(FlaskForm):
     photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
     caption = TextAreaField('Caption', validators=[InputRequired()])
     
-class likes(FlaskForm):
-    user_id = IntegerField('User ID', validators=[InputRequired()])
-    post_id = IntegerField('Post ID', validators=[InputRequired()])
-  
-    
-class follows(FlaskForm):
-    user_id = IntegerField('User ID', validators=[InputRequired()])
-    follower_id = IntegerField('Follower ID', validators=[InputRequired()])
+class login(FlaskForm):
+    username = StringField('Username', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired()])

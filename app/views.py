@@ -2,7 +2,7 @@ from app import app, db
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from app.models import Users, Posts, Likes, Follows
-from app.forms import profileForm, posts, likes, follows
+from app.forms import profileForm, posts
 from datetime import datetime, date
 import os
 from werkzeug.utils import secure_filename
@@ -42,24 +42,47 @@ def register():
         db.session.add(user_profile)
         db.session.commit()
         
-        message = [{"message": "User successfully registered"}]
-        return jsonify(message=message)
+        # data = {"message": "User successfully registered"}
+        # return jsonify({'message':data['message'])
+        return jsonify(message="User successfully registered")
     
 
 #Accepts login credentials as username and password    
 @app.route('/api/auth/login', methods=["POST"])
 def login():
-    return "test"
+    
+    form = login()
+    
+    if request.method == "POST" and form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        
+        user = Users.query.filter_by(username=username).first()
+        
+        if user is not None and check_password_hash(user.password, password):
+            session['id'] = user.id
+            login_user(user)
+            
+        data = {"token":"",
+                "message": "Welcome" + user.username
+            }
+        return jsonify({"message":data['message']})
 
 
 #logout user
 @app.route('/api/auth/logout', methods=["GET"])
+#@login_required
 def logout():
-    return "test"
+    
+    logout_user()
+    
+    data = {"message": "See you soon!"}
+    return jsonify({"message":data['message']})
 
 
 #Used for adding posts to users feed
-@app.route('/api/users/<user_id>/posts', methods=["POST"])
+@app.route('/api/users/<user_id>/posts', methods=["POST"]) # This route works on postman
+#@login_required
 def addPost(user_id):
     
     form = posts()
@@ -69,8 +92,18 @@ def addPost(user_id):
     photo = request.json['photo']#form.photo.data
     description = request.json['description']#form.caption.data
     
+    filename = secure_filename(photo.filename)
+        
+    #set custom file name for reference which will be saved in tbe database
+    if filename.endswith('.' + "png"):
+        photo_name = "pic_"+ firstname +"_"+ email +".png"
+    elif filename.endswith('.' + "jpg"):
+        photo_name = "pic_"+ firstname +"_"+ email + ".jpg"
+    
+    profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_name))
+        
     #connect to database and save data
-    user_posts = Posts(user_id, photo, description,"2019-3-4")
+    user_posts = Posts(user_id, photo, description)
     db.session.add(user_posts)
     db.session.commit()
     
@@ -81,6 +114,7 @@ def addPost(user_id):
 
 #Returns a single user's posts    
 @app.route('/api/users/<user_id>/posts', methods=["GET"])# This route works on postman
+#@login_required
 def viewPost(user_id):
     
     #connect to database and fectch user posts
@@ -103,6 +137,7 @@ def viewPost(user_id):
 
 #Create a follow relationship between the current user and the target user   
 @app.route('/api/users/<user_id>/follow', methods=["POST"]) # This route works on postman
+#@login_required
 def follow(user_id):
     
     #collect from data
@@ -121,6 +156,7 @@ def follow(user_id):
 
 #Return all posts for all users   
 @app.route('/api/posts', methods=["GET"]) # This route works on postman
+#@login_required
 def allPost():
     
     #connect to database and fectch user posts
@@ -143,6 +179,7 @@ def allPost():
     
 #Set a like on the current Post by the logged user    
 @app.route('/api/post/<post_id>/like', methods=["POST"]) # This route works on postman
+#@login_required
 def addLike():
     
     #collect from data
@@ -162,7 +199,6 @@ def addLike():
             }
     
     return jsonify({'data':data})
-
 
 #______________________________ END API Routes ________________________________#
 

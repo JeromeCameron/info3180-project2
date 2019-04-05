@@ -1,10 +1,8 @@
 Vue.component('app-header', {
     template: `
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color:#8134d4">
-      <a class="navbar-brand" href="{{ url_for('home') }}">
-        <img src="{{ url_for('static', filename="icons/photograph.png") }}" width="25" height="25" class="d-inline-block align-top" alt="">
-        Photogram
-      </a>
+      <router-link to="/" class="navbar-brand"><img src="{{ url_for('static', filename='icons/photograph.png') }}" 
+      width="25" height="25" class="d-inline-block align-top" alt="">Photogram</router-link>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -53,26 +51,62 @@ Vue.component('app-footer', {
 });
 
 const AllPosts = Vue.component('all-posts', {
-   template: `
-    <div class="jumbotron">
-        <h1>Lab 7</h1>
-        <p class="lead">In this lab we will demonstrate VueJS working with Forms and Form Validation from Flask-WTF.</p>
-    </div>
-   `,
-    data: function() {
-       return {}
-    }
-});
-
-const NotFound = Vue.component('not-found', {
     template: `
     <div>
-        <h1 class="page-header">404 - Not Found</h1>
+        <div class="card">
+            <div class="card-header">
+                Featured
+            </div>
+        <div class="card-body">
+            <img src="..." class="card-img-top" alt="...">
+            <h5 class="card-title">Special title treatment</h5>
+            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+            <a href="#" class="btn btn-primary">Go somewhere</a>
+        </div>
+        <div class="card-footer text-muted">
+            2 days ago
+        </div>
     </div>
+        <ul class="news__list">
+            <li v-for="post in posts" class="news__item">
+                <h4 class="news__title">{{ article.title }}</h4>
+                <img :src="article.urlToImage" class="news__img" />
+                <p>{{ article.description }}</p>
+            </li>
+        </ul>
+    </div>
+
     `,
-    data: function () {
-        return {}
-    }
+    created: function() {
+        let self = this;
+        fetch('https://newsapi.org/v2/top-headlines?country=us&apiKey=<apikey>')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                console.log(data);
+                self.articles = data.articles;
+            });
+    },
+    data: function() {
+        return {
+            articles: [],
+            searchTerm: ''
+        }
+    },
+    methods: {
+        searchNews: function() {
+        let self = this;
+        fetch('https://newsapi.org/v2/everything?q='+self.searchTerm + '&language=en&apiKey=<apikey>')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                console.log(data);
+                self.articles = data.articles;
+            });
+        }
+    } 
 })
 
 const ProfileForm = Vue.component('profile-form', {
@@ -172,6 +206,167 @@ const ProfileForm = Vue.component('profile-form', {
     }
 })
 
+const LoginForm = Vue.component('login-form', {
+    template: `
+    <form method='post'">
+        <h2>Login</h2>
+        <ul id="ul" v-if="messages">
+            <li v-for="message in messages" class="messages">{{ message }}</li>
+        </ul>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" name="username" class="form-control" required>
+        </div>
+        
+        <button type="submit" name="login" class="btn btn-primary">Login</button>
+    </form>
+    `,
+    data: function() {
+        return {
+            messages: [],
+        }
+    },
+    methods: {
+        login: function() {
+        let self = this;
+        let loginForm = document.getElementById('login');
+        let form_data = new FormData(loginForm);
+        
+        fetch("/api/auth/login", {
+            method: 'POST',
+            body: form_data,
+            headers: {
+                'X-CSRFToken': token
+            },
+            credentials: 'same-origin' 
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (jsonResponse) {
+                // display a success message
+                console.log(jsonResponse);
+                if (jsonResponse.message) {
+                    self.messages = [];
+                    self.messages.push(jsonResponse.message);
+                    document.getElementById("ul").setAttribute('class', 'alert alert-success');
+                }
+                else {
+                    self.messages = [];
+                    for (var i = 0; i < jsonResponse.errors.length; i++) {
+                        self.messages.push(jsonResponse.errors[i]);
+                    }
+                    document.getElementById("ul").setAttribute('class', 'alert alert-danger');
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        },
+    }
+})
+
+const Logout = Vue.component('logout', {
+    template: `
+    <div>
+        <h1 class="page-header">404 - Not Found</h1>
+    </div>
+    `,
+    data: function () {
+        return {}
+    }
+})
+
+const MyProfile = Vue.component('my-profile', {
+    template: `
+    <div>
+        <h1 class="page-header">404 - Not Found</h1>
+    </div>
+    `,
+    data: function () {
+        return {}
+    }
+})
+
+const NewPost = Vue.component('new-post', {
+    template: `
+    <form method='post'">
+        <h2>New Post</h2>
+        <ul id="ul" v-if="messages">
+            <li v-for="message in messages" class="messages">{{ message }}</li>
+        </ul>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" name="username" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="password">Caption</label>
+            <input type="password" name="username" class="form-control">
+        </div>
+        
+        <button type="submit" name="submit" class="btn btn-primary">Submit</button>
+    </form>
+    `,
+    data: function() {
+        return {
+            messages: [],
+        }
+    },
+    methods: {
+        login: function() {
+        let self = this;
+        let loginForm = document.getElementById('login');
+        let form_data = new FormData(loginForm);
+        
+        fetch("/api/auth/login", {
+            method: 'POST',
+            body: form_data,
+            headers: {
+                'X-CSRFToken': token
+            },
+            credentials: 'same-origin' 
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (jsonResponse) {
+                // display a success message
+                console.log(jsonResponse);
+                if (jsonResponse.message) {
+                    self.messages = [];
+                    self.messages.push(jsonResponse.message);
+                    document.getElementById("ul").setAttribute('class', 'alert alert-success');
+                }
+                else {
+                    self.messages = [];
+                    for (var i = 0; i < jsonResponse.errors.length; i++) {
+                        self.messages.push(jsonResponse.errors[i]);
+                    }
+                    document.getElementById("ul").setAttribute('class', 'alert alert-danger');
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        },
+    }
+})
+
+const NotFound = Vue.component('not-found', {
+    template: `
+    <div>
+        <h1 class="page-header">404 - Not Found</h1>
+    </div>
+    `,
+    data: function () {
+        return {}
+    }
+})
+
 // Define Routes
 const router = new VueRouter({
     mode: 'history',
@@ -179,7 +374,7 @@ const router = new VueRouter({
         {path: "/", component: AllPosts},
         {path: "/register", component: ProfileForm },
         {path: "/login", component: LoginForm },
-        {path: "/login", component: Logout },
+        {path: "/logout", component: Logout },
         {path: "/explore", component: AllPosts },
         {path: "/users/<user_id>", component: MyProfile },
         {path: "/posts/new", component: NewPost },
