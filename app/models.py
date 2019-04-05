@@ -57,11 +57,10 @@ class Posts(db.Model):
     caption = db.Column(db.VARCHAR)
     created_on = db.Column(db.DateTime, nullable=False, default=datetime.now)
     
-    def __init__(self, user_id, photo, caption, created_on):
+    def __init__(self, user_id, photo, caption):
         self.user_id = user_id
         self.photo = photo
         self.caption = caption
-        self.created_on = created_on
         
 ################################################################################
 

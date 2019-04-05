@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 #________________________ API ROUTES (endpoints) ______________________________#
 
 #Accepts user information and save it to the database
-@app.route('/api/users/register', methods=["POST"])
+@app.route('/api/users/register', methods=["POST"]) #not working properly - not getting data sent. DB entry blank.
 def register():
     
     form = profileForm()
@@ -59,52 +59,110 @@ def logout():
 
 
 #Used for adding posts to users feed
-@app.route('/api/users/{user_id}/posts', methods=["POST"])
-def addPost():
-    return "test"
+@app.route('/api/users/<user_id>/posts', methods=["POST"])
+def addPost(user_id):
+    
+    form = posts()
+
+    #collect from data
+    # user_id = request.json['user_id']
+    photo = request.json['photo']#form.photo.data
+    description = request.json['description']#form.caption.data
+    
+    #connect to database and save data
+    user_posts = Posts(user_id, photo, description,"2019-3-4")
+    db.session.add(user_posts)
+    db.session.commit()
+    
+    data = {"message": "Successfully created a new post"}
+    
+    return jsonify({"message":data['message']})
 
 
 #Returns a single user's posts    
-@app.route('/api/users/{user_id}/posts', methods=["GET"])
+@app.route('/api/users/<user_id>/posts', methods=["GET"])# This route works on postman
 def viewPost(user_id):
     
     #connect to database and fectch user posts
-    db_posts = Posts.query.filter_by(id=user_id).order_by(Posts.created_on).all()
+    db_posts = Posts.query.filter_by(user_id=user_id).all()
     
     user_posts = []
     
     for posts in db_posts:
         
         data = {
-              "id": posts['id'],
-              "user_id": posts['user_id'],
-              "photo": posts['photo'],
-              "caption": posts['caption'],
-              "created_on": posts['created_on']
+              "id": posts.id,
+              "user_id": posts.user_id,
+              "photo": posts.photo,
+              "caption": posts.caption,
+              "created_on": posts.created_on
             }
         user_posts.append(data)
         
-    return jsonify(user_posts=user_posts)
+    return jsonify({'user_posts':user_posts})
 
 #Create a follow relationship between the current user and the target user   
-@app.route('/api/users/{user_id}/follow', methods=["POST"])
-def follow():
-    return "test"
+@app.route('/api/users/<user_id>/follow', methods=["POST"]) # This route works on postman
+def follow(user_id):
+    
+    #collect from data
+    # user_id = request.json['user_id']
+    follower_id = request.json['follower_id']
+
+    #connect to database and save data
+    follow_user = Follows(user_id,follower_id)
+    db.session.add(follow_user)
+    db.session.commit()
+    
+    data = {"message": "You are now following that user"}
+    
+    return jsonify({"message":data['message']})
 
 
 #Return all posts for all users   
-@app.route('/api/post', methods=["GET"])
+@app.route('/api/posts', methods=["GET"]) # This route works on postman
 def allPost():
     
     #connect to database and fectch user posts
-    user_posts = Posts.query.order_by(Posts.created_on).all()
-    return jsonify(user_posts=user_posts)
+    db_posts = Posts.query.order_by(Posts.created_on).all()
+    user_posts = []
+    
+    for posts in db_posts:
+        
+        data = {
+              "id": posts.id,
+              "user_id": posts.user_id,
+              "photo": posts.photo,
+              "caption": posts.caption,
+              "created_on": posts.created_on
+            }
+        user_posts.append(data)
+        
+    return jsonify({'user_posts':user_posts})
  
     
 #Set a like on the current Post by the logged user    
-@app.route('/api/post/{post_id}/like', methods=["POST"])
+@app.route('/api/post/<post_id>/like', methods=["POST"]) # This route works on postman
 def addLike():
-    return "test"
+    
+    #collect from data
+    user_id = request.json['user_id']
+    post_id = request.json['post_id']
+
+    #connect to database and save data
+    likes = Likes(user_id,post_id)
+    db.session.add(likes)
+    db.session.commit()
+    
+    count = Likes.query.filter_by(post_id=post_id).count()
+    
+    data = {
+              "message": "Post liked!",
+              "likes": count
+            }
+    
+    return jsonify({'data':data})
+
 
 #______________________________ END API Routes ________________________________#
 
