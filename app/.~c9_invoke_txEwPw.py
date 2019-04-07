@@ -1,26 +1,24 @@
-from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash, session, jsonify,  _request_ctx_stack
+from app import app, db#, login_manager
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from app.models import Users, Posts, Likes, Follows
-from app.forms import profileForm, posts,  Login_user
+from app.forms import profileForm, posts,
 from datetime import datetime, date
 import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
-# import jwt
-from functools import wraps
-import base64
+
 
 #________________________ API ROUTES (endpoints) ______________________________#
 
 #Accepts user information and save it to the database
-@app.route('/api/users/register', methods=["POST"]) #This works now
+@app.route('/api/users/register', methods=["POST"]) #not working properly - not getting data sent. DB entry blank.
 def register():
     
     form = profileForm()
     
     if request.method == "POST" and form.validate_on_submit():
-        #collect form data
+        #collect from data
         username = form.username.data
         firstname = form.firstname.data
         lastname = form.lastname.data
@@ -28,7 +26,8 @@ def register():
         email = form.email.data
         location = form.location.data
         biography = form.biography.data
-        profile_photo = form.photo.data
+        profile_photo = form.profile_photo.data
+        
         filename = secure_filename(profile_photo.filename)
         
         #set custom file name for reference which will be saved in tbe database
@@ -44,17 +43,16 @@ def register():
         db.session.add(user_profile)
         db.session.commit()
         
-        data = {"message": "User successfully registered"}
-        return jsonify({"message":data['message']})
-        
-    return jsonify({"errors": form_errors(form)})
+        # data = {"message": "User successfully registered"}
+        # return jsonify({'message':data['message'])
+        return jsonify(message="User successfully registered")
     
 
 #Accepts login credentials as username and password    
 @app.route('/api/auth/login', methods=["POST"])
-def log_in():
+def login():
     
-    form = Login_user()
+    form = login()
     
     if request.method == "POST" and form.validate_on_submit():
         username = form.username.data
@@ -66,11 +64,12 @@ def log_in():
             session['id'] = user.id
             login_user(user)
             
-            data =  {"token":"token","message": "Welcome "+user.firstname}
-            return jsonify({"message":data['message']})
-        
-        return jsonify({"message": "Incorrect username or password"})
-        
+        data = {"token":"",
+                "message": "Welcome" + user.username
+            }
+        return jsonify({"message":data['message']})
+
+
 #logout user
 @app.route('/api/auth/logout', methods=["GET"])
 #@login_required
@@ -102,7 +101,7 @@ def addPost(user_id):
     elif filename.endswith('.' + "jpg"):
         photo_name = "pic_"+ firstname +"_"+ email + ".jpg"
     
-    photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_name))
+    profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_name))
         
     #connect to database and save data
     user_posts = Posts(user_id, photo, description)
@@ -158,7 +157,7 @@ def follow(user_id):
 
 #Return all posts for all users   
 @app.route('/api/posts', methods=["GET"]) # This route works on postman
-# @login_required
+#@login_required
 def allPost():
     
     #connect to database and fectch user posts
@@ -204,30 +203,24 @@ def addLike():
 
 #______________________________ END API Routes ________________________________#
 
-#Removed home and about render templates since we're using Vue -Lindsay
+
+#Render home page
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+#Render about page   
+@app.route('/about/')
+def about():
+    return render_template('about.html')
+ 
 
 #####_______________________________________________________________________________________________#####
 
-# Here we define a function to collect form errors from Flask-WTF
-# which we can later use
-def form_errors(form):
-    error_messages = []
-    """Collects form errors"""
-    for field, errors in form.errors.items():
-        for error in errors:
-            message = u"Error in the %s field - %s" % (
-                    getattr(form, field).label.text,
-                    error
-                )
-            error_messages.append(message)
 
-    return error_messages
-
-#####_______________________________________________________________________________________________#####
-
-@login_manager.user_loader
-def load_user(id):
-    return Users.query.get(int(id))
+# @login_manager.user_loader
+# def load_user(id):
+#     return UserProfile.query.get(int(id))
     
 
 @app.route('/', defaults={'path': ''})

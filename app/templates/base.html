@@ -9,6 +9,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <title>Photogram</title>
+    
+    <!--<link rel="shortcut icon" href="/static/icons/photograph.png">-->
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
@@ -21,22 +23,9 @@
   </head>
   
   <body>
-      
-    <header>
-        {% include "header.html" %}
-    </header>
-    
-    <main>
-        <div class="container">
-            {% block main %}{% endblock %}
-        </div>
-    </main>
-    
-    <footer>
-        <div class="container">
-            {% include "footer.html" %}
-        </div>
-    </footer>
+    <div id="main">
+        {% block main %}{% endblock %}
+    </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 

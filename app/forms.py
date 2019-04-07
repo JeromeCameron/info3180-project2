@@ -12,7 +12,7 @@ class profileForm(FlaskForm):
     email = StringField('Email', validators=[InputRequired(), Email()])
     location = StringField('Location', validators=[InputRequired()])
     biography = TextAreaField('Biography', validators=[InputRequired()])
-    profile_photo = FileField('Profile Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
+    photo = FileField('Profile Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
     password = PasswordField('Password', validators=[InputRequired()])
     
 class posts(FlaskForm):
@@ -20,6 +20,6 @@ class posts(FlaskForm):
     photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
     caption = TextAreaField('Caption', validators=[InputRequired()])
     
-class login(FlaskForm):
+class Login_user(FlaskForm):
     username = StringField('Username', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired()])
