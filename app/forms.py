@@ -16,7 +16,6 @@ class profileForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired()])
     
 class posts(FlaskForm):
-    user_id = IntegerField('User ID', validators=[InputRequired()])
     photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
     caption = TextAreaField('Caption', validators=[InputRequired()])
     

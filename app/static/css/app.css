@@ -73,6 +73,7 @@ ul {
 .tiny {
     width: 1.5em;
     height: 1.5em;
+    border-radius: 5px;
 }
 
 .jumbo {
@@ -93,3 +94,7 @@ ul {
 /*    background-color: black;*/
 /*    padding: 20px;*/
 /*}*/
+
+.posts {
+    max-width: 60%;
+}

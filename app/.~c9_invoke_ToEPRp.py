@@ -93,18 +93,18 @@ def addPost(user_id):
     form = posts()
     
     if request.method == "POST" and form.validate_on_submit():
-        #collect from data
+    description = rform.caption.data
+        user_id = n['user_id']
         photo = form.photo.data#request.json['photo']
         description = form.caption.data #request.json['description']
         
         filename = secure_filename(photo.filename)
-        add_date = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)")
             
         #set custom file name for reference which will be saved in the database
         if filename.endswith('.' + "png"):
-            photo_name = "pic_"+ add_date +"_"+ user_id +".png"
+            photo_name = "pic_"+ datetime.now() +"_"+ user_id +".png"
         elif filename.endswith('.' + "jpg"):
-            photo_name = "pic_"+ add_date +"_"+ user_id + ".jpg"
+            photo_name = "pic_"+ datetime.now() +"_"+ user_id + ".jpg"
         
         photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_name))
             
@@ -247,7 +247,6 @@ def index(path):
     """
     return render_template('index.html')
 
-#####_______________________________________________________________________________________________#####
 
 ###
 # The functions below should be applicable to all Flask apps.

@@ -25,13 +25,10 @@ Vue.component('app-header', {
             <router-link to="/users/<user_id>" class="nav-link">My Profile</router-link>
           </li>
 
-            <li class="nav-item" v-show=!logged_in>
+            <li class="nav-item">
                 <router-link to="/login" class="nav-link">Login</router-link> <!--toggle login/logout for authenticated user-->
             </li>
-            
-             <li class="nav-item" v-show=logged_in>
-                <router-link to="/login" class="nav-link">Logout</router-link> <!--toggle login/logout for authenticated user-->
-            </li>
+        
         </ul>
       </div>
     </nav>
@@ -81,30 +78,28 @@ const Welcome = Vue.component('welcome', {
 const AllPosts = Vue.component('all-posts', {
     template: `
     <div class="container">
-        <router-link to="/posts/new" class="btn btn-primary">New Post</router-link>
-                <ul v-if="user_posts.length != 0" >
-            <li v-for="post in user_posts" class="">
+        <router-link to="/posts/new" class="btn btn-primary" style="float:right; margin-left:1em;">New Post</router-link>
+        <ul v-if="user_posts.length != 0">
+            <li v-for="post in user_posts">
                 <div class="card">
-                    <div class="card-header">
-                        <router-link to="/users/<user_id>" class="nav-link">
-                            <img :src="post.user_id.photo" class="post-img" />
-                            post.user_id.username
+                        <router-link to="/users/post.user_id" class="nav-link">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <img :src="post.photo" class="post-img tiny" />
+                                {{ post.user_id }}
+                            </h6>
                         </router-link>
-                    </div>
                     <div class="card-body">
                         <img src="/static/uploads/"  alt="">
-                        <img :src="post.urlToImage" class="" />
-                        <p class="card-text">post.caption</p>
-                        <a href="#" class="btn btn-primary">Go somewhere</a>
+                        <img :src="post.photo" class="" />
+                        <p class="card-text">{{ post.caption }}</p>
                     </div>
-                    <div class="card-footer text-muted">
-                        <p><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""># likes</p>
+                    <div class="text-muted">
+                        <p><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> # likes</p>
                         <!--Example of badge with counter...might be able to use this for the likes counter-->
-                        <button type="button" class="btn btn-primary">
-                            Profile <span class="badge badge-light">9</span>
-                            <span class="sr-only">likes</span>
-                        </button>
-                        <!-- add date of post -->
+                        <a class="btn btn-primary">
+                            <span class="badge badge-light">9</span> likes
+                        </a>
+                        <p style="float:right;">{{ post.created_on }}</p>
                     </div>
                 </div>
             </li>
@@ -124,12 +119,26 @@ const AllPosts = Vue.component('all-posts', {
         })
         .then(function(data) {
             console.log(data);
-            self.user_posts = data.user_posts;
+            // self.user_posts = data.user_posts;
         });
     },
     data: function() {
         return {
-            user_posts: []
+            user_posts: [
+                {
+                "id": 1,
+                "user_id": "Mary",
+                "photo": "/static/uploads/welcome.jpg",
+                "caption": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla viverra, nisi a mollis tristique, ex tellus lobortis nulla, eu viverra ligula purus in eros. Aliquam gravida eros non lacus consectetur, ut bibendum elit cursus. Sed sed nulla ac urna aliquet sodales posuere id lorem. Sed vitae magna felis.",
+                "created_on": "July 7, 2018"
+                },
+                {
+                "id": 1,
+                "user_id": "Jane",
+                "photo": "/static/uploads/welcome.jpg",
+                "caption": "welcome",
+                "created_on": "July 5, 2018"
+                }]
         };
     }
 });
@@ -271,7 +280,7 @@ const LoginForm = Vue.component('login-form', {
                     router.push("explore");
                     // save user id in session
                     sessionStorage.user_id= JSON.stringify({"user_id":jsonResponse.id})
-                    logged_in = true;
+                    // logged_in = true; was tinking of using this to switch the login/logout in navbar but nah can delete
                 }
                 
                 
@@ -405,8 +414,10 @@ const NewPost = Vue.component('new-post', {
         let self = this;
         let postForm = document.getElementById('posts');
         let form_data = new FormData(postForm);
+        let id = JSON.parse(sessionStorage.user_id);
+        let user_id = id['user_id'];
         
-        fetch("/api/users/<user_id>/posts", {
+        fetch("/api/users/"+ user_id +"/posts", {
             method: 'POST',
             body: form_data,
             headers: {
