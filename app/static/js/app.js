@@ -1,3 +1,6 @@
+
+let logged_in = false
+
 Vue.component('app-header', {
     template: `
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color:#8134d4">
@@ -22,8 +25,12 @@ Vue.component('app-header', {
             <router-link to="/users/<user_id>" class="nav-link">My Profile</router-link>
           </li>
 
-            <li class="nav-item">
+            <li class="nav-item" v-show=!logged_in>
                 <router-link to="/login" class="nav-link">Login</router-link> <!--toggle login/logout for authenticated user-->
+            </li>
+            
+             <li class="nav-item" v-show=logged_in>
+                <router-link to="/login" class="nav-link">Logout</router-link> <!--toggle login/logout for authenticated user-->
             </li>
         </ul>
       </div>
@@ -74,16 +81,15 @@ const Welcome = Vue.component('welcome', {
 const AllPosts = Vue.component('all-posts', {
     template: `
     <div class="container">
-        <a href="/posts/new" class="btn btn-primary">New Post</a>
-        <ul class="">
+        <router-link to="/posts/new" class="btn btn-primary">New Post</router-link>
+                <ul v-if="user_posts.length != 0" >
             <li v-for="post in user_posts" class="">
                 <div class="card">
                     <div class="card-header">
-                        <router-link to="/users/{{ user_id }}" class="nav-link">
-                            <img :src="post.user_id.photo" class="" />
+                        <router-link to="/users/<user_id>" class="nav-link">
+                            <img :src="post.user_id.photo" class="post-img" />
                             post.user_id.username
                         </router-link>
-                        
                     </div>
                     <div class="card-body">
                         <img src="/static/uploads/"  alt="">
@@ -103,48 +109,40 @@ const AllPosts = Vue.component('all-posts', {
                 </div>
             </li>
         </ul>
+        <div v-else>
+            <p>Nothing to display yet</p>
+        </div>
     </div>
     `,
     created: function() {
         let self = this;
+        
         fetch('/api/posts')
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                console.log(data);
-                self.user_posts = data.user_posts;
-            });
+        
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log(data);
+            self.user_posts = data.user_posts;
+        });
     },
     data: function() {
         return {
-            user_posts: [],
-        }
-    },
-    methods: {
-        get_all_posts: function() {
-        let self = this;
-        fetch('/api/posts')
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                console.log(data);
-                self.user_posts = data.user_posts;
-            });
-        }
-    } 
-})
+            user_posts: []
+        };
+    }
+});
 
 const ProfileForm = Vue.component('profile-form', {
     template: 
     `
     <div class="container">
         <h4>Register</h4>
-        <ul id="ul" v-if="messages">
-            <li v-for="message in messages" class="messages">{{ message }}</li>
-        </ul>
         <form @submit.prevent="newProfile" method='post' encType="multipart/form-data" class="form" id="profileForm">
+            <ul id="ul" v-if="messages">
+                <li v-for="message in messages" class="messages">{{ message }}</li>
+            </ul>
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" name="username" class="form-control" required>
@@ -207,7 +205,7 @@ const ProfileForm = Vue.component('profile-form', {
             .then(function (jsonResponse) {
                 // display a success/error message
                 console.log(jsonResponse);
-                router.push(`Welcome`)
+                router.push({path:'/login'})
             })
             .catch(function (error) {
                 console.log(error);
@@ -220,10 +218,10 @@ const LoginForm = Vue.component('login-form', {
     template: `
     <div class="container">
         <h4>Login</h4>
-        <ul id="ul" v-if="messages">
-            <li v-for="message in messages" class="messages">{{ message }}</li>
-        </ul>
         <form @submit.prevent="login" method='post' class="form" id="login">
+            <ul id="ul" v-if="messages.length > 0" class = "alert-danger">
+                <li class="messages">{{ messages }}</li>
+            </ul>
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" name="username" class="form-control" required>
@@ -263,7 +261,20 @@ const LoginForm = Vue.component('login-form', {
             .then(function (jsonResponse) {
                 // display a success message
                 console.log(jsonResponse);
-                router.push("explore")
+                // self.message = jsonResponse.error; 
+
+                if ('error' in jsonResponse){
+                    self.messages = jsonResponse.error; 
+                    // router.push("login");
+                }else{
+                    self.message = [];
+                    router.push("explore");
+                    // save user id in session
+                    sessionStorage.user_id= JSON.stringify({"user_id":jsonResponse.id})
+                    logged_in = true;
+                }
+                
+                
             })
             .catch(function (error) {
                 console.log(error);
@@ -285,41 +296,39 @@ const Logout = Vue.component('logout', {
 
 const MyProfile = Vue.component('my-profile', {
     template: `
-        <div class="">
-            <div class="card">
-                <div class="row">
-                    <div class="col-md-3 img-holder">
-                        <img src="/static/avatars/002-girl-26.png" class="card-img jumbo" alt="...">
+    <div class="container">
+        <div class="card">
+            <div class="row">
+                <div class="col-md-3 img-holder">
+                    <img src="/static/avatars/002-girl-26.png" class="card-img jumbo" alt="...">
+                </div>
+                <div class="col-md-4">
+                    <div class="card-body">
+                        <h5 class="card-title">First name Last name</h5>
+                        <br>
+                        <p class="card-text">Location</p>
+                        <p class="card-text">Member since date</p>
+                        <br>
+                        <p class="card-text">Biography</p>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card-body">
-                            <h5 class="card-title">First name Last name</h5>
-                            <br>
-                            <p class="card-text">Location</p>
-                            <p class="card-text">Member since date</p>
-                            <br>
-                            <p class="card-text">Biography</p>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card-body">
-                            <p style="float:left;">Posts</p>
-                            <p style="float:right;">Followers</p>
-                            <button class="btn btn-secondary">Follow</button>
-                        </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card-body">
+                        <p style="float:left;">Posts</p>
+                        <p style="float:right;">Followers</p>
+                        <button class="btn btn-secondary">Follow</button>
                     </div>
                 </div>
             </div>
         </div>
-        <ul class="">
+        <ul v-if="user_posts.length != 0" >
             <li v-for="post in user_posts" class="">
                 <div class="card">
                     <div class="card-header">
                         <router-link to="/users/<user_id>" class="nav-link">
-                            <img :src="post.user_id.photo" class="" />
+                            <img :src="post.user_id.photo" class="post-img" />
                             post.user_id.username
                         </router-link>
-                        
                     </div>
                     <div class="card-body">
                         <img src="/static/uploads/"  alt="">
@@ -339,20 +348,36 @@ const MyProfile = Vue.component('my-profile', {
                 </div>
             </li>
         </ul>
+        <div v-else>
+            <p>Nothing to display yet</p>
+            <router-link to="/posts/new" class="btn btn-primary">New Post</router-link>
+        </div>
     </div>
     `,
-    data: function () {
-        return {}
+    created: function() {
+        let self = this;
+        
+        fetch('/api/posts')
+        
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log(data);
+            self.user_posts = data.user_posts;
+        });
+    },
+    data: function() {
+        return {
+            user_posts: []
+        }
     }
-})
+});
 
 const NewPost = Vue.component('new-post', {
     template: `
     <div class="container">
         <h4>New Post</h4>
-        <ul id="ul" v-if="messages">
-            <li v-for="message in messages" class="messages">{{ message }}</li>
-        </ul>
         <form @submit.prevent="new_post" method='post' encType="multipart/form-data" class="form" id="posts">
             <ul id="ul" v-if="messages">
                 <li v-for="message in messages" class="messages">{{ message }}</li>

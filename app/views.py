@@ -1,5 +1,5 @@
-from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash, session, jsonify,  _request_ctx_stack
+from app import app, db, login_manager, session
+from flask import render_template, request, redirect, url_for, flash, jsonify,  _request_ctx_stack
 from flask_login import login_user, logout_user, current_user, login_required
 from app.models import Users, Posts, Likes, Follows
 from app.forms import profileForm, posts,  Login_user
@@ -10,6 +10,7 @@ from werkzeug.security import check_password_hash
 # import jwt
 from functools import wraps
 import base64
+
 
 #________________________ API ROUTES (endpoints) ______________________________#
 
@@ -66,10 +67,10 @@ def log_in():
             session['id'] = user.id
             login_user(user)
             
-            data =  {"token":"token","message": "Welcome "+user.firstname}
-            return jsonify({"message":data['message']})
+            data =  {"token":"JWT token should here","message": "Welcome "+user.firstname}
+            return jsonify({"message":data['message'], "id":session['id']})
         
-        return jsonify({"message": "Incorrect username or password"})
+        return jsonify({"error": "Incorrect username or password"})
         
 #logout user
 @app.route('/api/auth/logout', methods=["GET"])
@@ -77,7 +78,7 @@ def log_in():
 def logout():
     
     logout_user()
-    
+    session.pop('id', None)
     data = {"message": "See you soon!"}
     return jsonify({"message":data['message']})
 

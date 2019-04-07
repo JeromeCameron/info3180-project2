@@ -13,6 +13,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True # added just to suppress a w
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
+
 db = SQLAlchemy(app)
 
 # Flask-Login login manager

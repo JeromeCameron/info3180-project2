@@ -25,6 +25,7 @@ main {
 
 .form {
     max-width: 400px;
+    min-width: 300px;
     padding: 1.5em;
     background-color: rgba(254,218,119,0.2);
     border-radius: 5px;
@@ -65,6 +66,10 @@ ul {
     justify-content: center;
 }
 
+/*.banner {*/
+/*    padding-bottom: 1.5em;*/
+/*}*/
+
 .tiny {
     width: 1.5em;
     height: 1.5em;
@@ -83,3 +88,8 @@ ul {
     background-color: #8134d4;
     border: #8134d4;
 }
+
+/*.colorr {*/
+/*    background-color: black;*/
+/*    padding: 20px;*/
+/*}*/
