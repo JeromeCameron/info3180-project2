@@ -98,7 +98,7 @@ def addPost(user_id):
         description = form.caption.data #request.json['description']
         
         filename = secure_filename(photo.filename)
-        add_date = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)")
+        add_date = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)") #used in file name to make it unique
             
         #set custom file name for reference which will be saved in the database
         if filename.endswith('.' + "png"):
@@ -173,12 +173,21 @@ def allPost():
     
     for posts in db_posts:
         
+        user= Users.query.filter_by(id=posts.user_id).first()
+        prof_pic=user.profile_photo
+        username= user.username
+        
+        likes=Likes.query.filter_by(post_id = posts.id).count()
+        
         data = {
+              "prof_pic": prof_pic,
+              "username": username,
               "id": posts.id,
               "user_id": posts.user_id,
               "photo": posts.photo,
               "caption": posts.caption,
-              "created_on": posts.created_on
+              "likes": likes,
+              "created_on": posts.created_on.strftime("%d %B, %Y")
             }
         user_posts.append(data)
         

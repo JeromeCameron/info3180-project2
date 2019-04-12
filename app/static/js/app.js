@@ -1,6 +1,3 @@
-
-let logged_in = false
-
 Vue.component('app-header', {
     template: `
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color:#8134d4">
@@ -50,25 +47,27 @@ Vue.component('app-footer', {
 
 const Welcome = Vue.component('welcome', {
     template: `
-    <div class="row">
-        <div class="card-deck">
-            <div class="card greeting-card">
-              <div class="card-body welcome">
-                <img src="/static/uploads/welcome.jpg" class="card-img" alt="">
-              </div>
-            </div>
-            
-            <div class="card text-center greeting-card">
-              <div class="card-body">
-                <h5 class="card-title logo">
-                    <img src="/static/icons/photograph.png" width="25" height="25" class="d-inline-block align-top" alt="">
-                    Photogram
-                </h5>
-                <div id="delim"></div>
-                <p class="card-text text-left">Share photos of your favourite moments with friends, family and the world</p>
-                <router-link to="/register" class="btn btn-primary">Register</router-link>
-                <router-link to="/login" class="btn btn-secondary">Login</router-link>
-              </div>
+    <div class="container">
+        <div class="row">
+            <div class="card-deck">
+                <div class="card greeting-card">
+                  <div class="card-body welcome">
+                    <img src="/static/uploads/welcome.jpg" class="card-img" alt="">
+                  </div>
+                </div>
+                
+                <div class="card text-center greeting-card">
+                  <div class="card-body">
+                    <h5 class="card-title logo">
+                        <img src="/static/icons/photograph.png" width="25" height="25" class="d-inline-block align-top" alt="">
+                        Photogram
+                    </h5>
+                    <div id="delim"></div>
+                    <p class="card-text text-left">Share photos of your favourite moments with friends, family and the world</p>
+                    <router-link to="/register" class="btn btn-primary">Register</router-link>
+                    <router-link to="/login" class="btn btn-secondary">Login</router-link>
+                  </div>
+                </div>
             </div>
         </div>
     </div>
@@ -84,17 +83,16 @@ const AllPosts = Vue.component('all-posts', {
                 <div class="card">
                         <router-link to="/users/post.user_id" class="nav-link">
                             <h6 class="card-subtitle mb-2 text-muted">
-                                <img :src="post.photo" class="post-img tiny" />
-                                {{ post.user_id }}
+                                <img :src= "'/static/uploads/' + post.prof_pic" class="post-img tiny" />
+                                {{ post.username }}
                             </h6>
                         </router-link>
                     <div class="card-body">
-                        <img src="/static/uploads/"  alt="">
-                        <img :src="post.photo" class="" />
+                        <img :src="'/static/uploads/' + post.photo" class="post_pic" />
                         <p class="card-text">{{ post.caption }}</p>
                     </div>
                     <div class="text-muted">
-                        <p><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> # likes</p>
+                        <p><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }}  likes</p>
                         <!--Example of badge with counter...might be able to use this for the likes counter-->
                         <a class="btn btn-primary">
                             <span class="badge badge-light">9</span> likes
@@ -117,35 +115,22 @@ const AllPosts = Vue.component('all-posts', {
         .then(function(response) {
             return response.json();
         })
-        .then(function(data) {
-            console.log(data);
+        .then(function(jsonResponse) {
+            self.user_posts=jsonResponse.user_posts;
+            console.log(self.user_posts.length);
+            // return self.posts
             // self.user_posts = data.user_posts;
         });
     },
     data: function() {
         return {
-            user_posts: [
-                {
-                "id": 1,
-                "user_id": "Mary",
-                "photo": "/static/uploads/welcome.jpg",
-                "caption": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla viverra, nisi a mollis tristique, ex tellus lobortis nulla, eu viverra ligula purus in eros. Aliquam gravida eros non lacus consectetur, ut bibendum elit cursus. Sed sed nulla ac urna aliquet sodales posuere id lorem. Sed vitae magna felis.",
-                "created_on": "July 7, 2018"
-                },
-                {
-                "id": 1,
-                "user_id": "Jane",
-                "photo": "/static/uploads/welcome.jpg",
-                "caption": "welcome",
-                "created_on": "July 5, 2018"
-                }]
+            user_posts: []
         };
     }
 });
 
 const ProfileForm = Vue.component('profile-form', {
-    template: 
-    `
+    template: `
     <div class="container">
         <h4>Register</h4>
         <form @submit.prevent="newProfile" method='post' encType="multipart/form-data" class="form" id="profileForm">
@@ -300,6 +285,31 @@ const Logout = Vue.component('logout', {
     `,
     data: function () {
         return {}
+    },
+    methods: {
+        logout: function() {
+        let self = this;
+        
+        fetch("/api/auth/logout", {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': token,
+            },
+            credentials: 'same-origin'
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (jsonResponse) {
+                // display a success message
+                console.log(jsonResponse);
+                sessionStorage.removeItem('user_id');
+                router.push("/");
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        },
     }
 })
 
@@ -336,13 +346,12 @@ const MyProfile = Vue.component('my-profile', {
                     <div class="card-header">
                         <router-link to="/users/<user_id>" class="nav-link">
                             <img :src="post.user_id.photo" class="post-img" />
-                            post.user_id.username
+                            {{ post.user_id }} <!--modify to show username-->
                         </router-link>
                     </div>
                     <div class="card-body">
-                        <img src="/static/uploads/"  alt="">
-                        <img :src="post.urlToImage" class="" />
-                        <p class="card-text">post.caption</p>
+                        <img :src="post.photo" class="" />
+                        <p class="card-text">{{ post.caption }}</p>
                         <a href="#" class="btn btn-primary">Go somewhere</a>
                     </div>
                     <div class="card-footer text-muted">
@@ -435,6 +444,7 @@ const NewPost = Vue.component('new-post', {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
+                    postForm.reset()
                 }
                 else {
                     self.messages = [];

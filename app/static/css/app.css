@@ -7,6 +7,7 @@ body {
     background-color: rgba(255,255,255,0);
     background-image: linear-gradient(147deg, #ffffff 76%, #feda77 80%, #f58529 85%, #dd2a7b 90%, #8134d4 96%, #515bd4 100%);
     min-height: 700px; /*consider effectiveness*/
+    min-width: 500px;
 }
 
 #main {
@@ -24,8 +25,8 @@ main {
 }
 
 .form {
-    max-width: 400px;
-    min-width: 300px;
+    max-width: 80%;
+    min-width: 20%;
     padding: 1.5em;
     background-color: rgba(254,218,119,0.2);
     border-radius: 5px;
@@ -97,4 +98,33 @@ ul {
 
 .posts {
     max-width: 60%;
+}
+
+.post_pic{
+    width: 100%;
+}
+
+.card-text{
+    padding-left: 10px;
+    padding-right: 10px;
+  
+}
+
+.card-body{
+    margin-left: 0px;
+    margin-right: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    
+}
+
+ul{
+    max-width:80%;
+    min-width:80%;
+}
+
+/*need to style to make the first post as bigg as the others*/
+.card{
+  
+    
 }
