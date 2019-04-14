@@ -61,19 +61,15 @@ ul {
     height: 15em;
 }
 
-.img-holder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+
 
 /*.banner {*/
 /*    padding-bottom: 1.5em;*/
 /*}*/
 
 .tiny {
-    width: 1.5em;
-    height: 1.5em;
+    width: 1em;
+    height: 1em;
     border-radius: 5px;
 }
 
@@ -91,40 +87,144 @@ ul {
     border: #8134d4;
 }
 
-/*.colorr {*/
-/*    background-color: black;*/
-/*    padding: 20px;*/
-/*}*/
+.disabled {
+    background-color: #feda77;
+    border: #feda77;
+}
 
 .posts {
     max-width: 60%;
 }
 
-.post_pic{
+.post-img {
     width: 100%;
 }
 
-.card-text{
+.card-text {
     padding-left: 10px;
     padding-right: 10px;
-  
 }
 
-.card-body{
+.card-body {
     margin-left: 0px;
     margin-right: 0px;
     padding-left: 0px;
     padding-right: 0px;
-    
 }
 
-ul{
-    max-width:80%;
-    min-width:80%;
+.post-body {
+    padding: 0 0 8px 0;
 }
 
-/*need to style to make the first post as bigg as the others*/
-.card{
-  
-    
+.post-footer {
+    padding: 0 10px 10px 10px;
 }
+
+.post-footer p {
+    margin: 0;    
+}
+
+/*ul {*/
+/*    max-width:80%;*/
+/*    min-width:80%;*/
+/*}*/
+
+.post {
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.post-container {
+    width: 50%;
+    margin: auto;
+}
+
+ul.navbar-nav.ml-auto{
+    justify-content: flex-end
+}
+
+
+/* Styles User Profile Page*/
+/*______________________________________________________________________________*/
+
+.container{
+    width: 900px;
+}
+
+/*styles user details on user profile page*/
+#prof_container .card{
+    width: 100%;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    margin-bottom: 20px;
+    box-shadow: 2px 2px rgba(0,0,0, 0.07);
+}
+
+/*sets profile pic size*/
+.profile_pic {
+    width: 150px;
+    height: 180px;
+}
+
+/*setup main box container for box1, box2 and box3*/
+#box_container{
+    padding: 10px;
+}
+
+/*divides a sizes user profile card into 3 sections*/
+/*_________________________*/
+#box1{
+    width: 150px;
+    height: 180px;
+}
+#box2{
+    width:500px;
+    margin-left: 10px;
+    padding-left: 10px;
+}
+#box3{
+    width: 180px;
+    margin-right: 20px;
+    margin-top: 15px;
+}
+/*_________________________*/
+
+/*remove bottom magin for location so there is no space between in and joined date*/
+#location{
+    margin-bottom: 0;
+}
+
+/*adds bottom magin for user full name so there is gap between it and location details*/
+#user_name{
+    margin-bottom: 18px;
+}
+
+/*styles text color for location and joined date*/
+#box2 p{
+    color: #505050;
+}
+
+/*styles text color for follower and post headings*/
+#box3 h6{
+    color: #909090;
+    font-weight: 600;
+}
+
+/*styles post list on user profile page*/
+#post_list{
+    padding:0;
+}
+#post_list .card{
+    margin-bottom: 20px;
+    margin-right: 10px;
+    border: none;
+    padding:0;
+    box-shadow: none;
+}
+
+#post_list .card-img, #post_list .card{
+    width: 280px;
+    height: 300px;
+}
+    
+/*______________________________________________________________________________*/

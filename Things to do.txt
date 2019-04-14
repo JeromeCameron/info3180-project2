@@ -1,4 +1,15 @@
 #Add task here
 
 1. Implement logout
-2. 
+
+2. Implement toggle login/logout
+
+3. Implement toggle follow/following and button functionality to increase counter
+
+4. MyProfile functionality for the logged in user: authenticated user's id must be passed into MyProfile component
+
+5. Display 404 page for user id's that do not exist;
+        Currently for example, the link "http://info3180-project2-jimmy876.c9users.io:8080/users/500" renders a page
+
+6. Find a better way to send user banner data for MyProfile component; currently, if a user has no posts their banner
+        will be blank. This is because the banner data is sent with each posts' data

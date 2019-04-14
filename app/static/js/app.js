@@ -1,3 +1,5 @@
+
+
 Vue.component('app-header', {
     template: `
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color:#8134d4">
@@ -10,18 +12,18 @@ Vue.component('app-header', {
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ml-auto">
           
-          <li class="nav-item active">
-            <router-link to="/" class="nav-link">Home</router-link>
-          </li>
-          
-          <li class="nav-item">
-            <router-link to="/explore" class="nav-link">Explore</router-link>
-          </li>
-          
-          <li class="nav-item">
-            <router-link to="/users/<user_id>" class="nav-link">My Profile</router-link>
-          </li>
-
+            <li class="nav-item active">
+                <router-link to="/" class="nav-link">Home</router-link>
+            </li>
+              
+            <li class="nav-item">
+                <router-link to="/explore" class="nav-link">Explore</router-link>
+            </li>
+              
+            <li class="nav-item">
+                <router-link :to="'users/' + user_id.user_id" class="nav-link">My Profile</router-link>
+            </li>
+              
             <li class="nav-item">
                 <router-link to="/login" class="nav-link">Login</router-link> <!--toggle login/logout for authenticated user-->
             </li>
@@ -29,18 +31,21 @@ Vue.component('app-header', {
         </ul>
       </div>
     </nav>
-    `
+    `,
+    data: function() {
+        return {
+            user_id: JSON.parse(sessionStorage.user_id),
+        }
+    }
 });
 
 Vue.component('app-footer', {
     template: `
     <footer>
-        <div class="container">
-            <p>Copyright &copy; Flask Inc.</p>
-            <div>Icons made by <a href="https://www.flaticon.com/authors/cole-bemis" title="Cole Bemis">Cole Bemis</a> from <a href="https://www.flaticon.com/" 		    
-            title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 		    
-            title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
-        </div>
+        <p>Copyright &copy; Flask Inc.</p>
+        <div>Icons made by <a href="https://www.flaticon.com/authors/cole-bemis" title="Cole Bemis">Cole Bemis</a> from <a href="https://www.flaticon.com/" 		    
+        title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 		    
+        title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
     </footer>
     `
 });
@@ -76,27 +81,24 @@ const Welcome = Vue.component('welcome', {
 
 const AllPosts = Vue.component('all-posts', {
     template: `
-    <div class="container">
-        <router-link to="/posts/new" class="btn btn-primary" style="float:right; margin-left:1em;">New Post</router-link>
+    <div class="post-container">
+        <router-link to="/posts/new" class="btn btn-primary" style="float:right;">New Post</router-link>
         <ul v-if="user_posts.length != 0">
             <li v-for="post in user_posts">
-                <div class="card">
-                        <router-link to="/users/post.user_id" class="nav-link">
-                            <h6 class="card-subtitle mb-2 text-muted">
-                                <img :src= "'/static/uploads/' + post.prof_pic" class="post-img tiny" />
+                <div class="post card">
+                        <router-link :to="'/users/' + post.user_id" class="nav-link">
+                            <h6 class="card-subtitle text-muted">
+                                <img :src= "'/static/uploads/' + post.prof_pic" class="tiny" />
                                 {{ post.username }}
                             </h6>
                         </router-link>
-                    <div class="card-body">
-                        <img :src="'/static/uploads/' + post.photo" class="post_pic" />
+                    <div class="post-body card-body">
+                        <img :src="'/static/uploads/' + post.photo" class="post-img" />
                         <p class="card-text">{{ post.caption }}</p>
                     </div>
-                    <div class="text-muted">
-                        <p><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }}  likes</p>
-                        <!--Example of badge with counter...might be able to use this for the likes counter-->
-                        <a class="btn btn-primary">
-                            <span class="badge badge-light">9</span> likes
-                        </a>
+                    <div class="post-footer text-muted">
+                        <p style="float:left;"><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
+
                         <p style="float:right;">{{ post.created_on }}</p>
                     </div>
                 </div>
@@ -117,7 +119,6 @@ const AllPosts = Vue.component('all-posts', {
         })
         .then(function(jsonResponse) {
             self.user_posts=jsonResponse.user_posts;
-            console.log(self.user_posts.length);
             // return self.posts
             // self.user_posts = data.user_posts;
         });
@@ -129,6 +130,7 @@ const AllPosts = Vue.component('all-posts', {
     }
 });
 
+// Register a new user
 const ProfileForm = Vue.component('profile-form', {
     template: `
     <div class="container">
@@ -267,8 +269,6 @@ const LoginForm = Vue.component('login-form', {
                     sessionStorage.user_id= JSON.stringify({"user_id":jsonResponse.id})
                     // logged_in = true; was tinking of using this to switch the login/logout in navbar but nah can delete
                 }
-                
-                
             })
             .catch(function (error) {
                 console.log(error);
@@ -313,57 +313,45 @@ const Logout = Vue.component('logout', {
     }
 })
 
+// view a users profile
 const MyProfile = Vue.component('my-profile', {
     template: `
-    <div class="container">
-        <div class="card">
-            <div class="row">
-                <div class="col-md-3 img-holder">
-                    <img src="/static/avatars/002-girl-26.png" class="card-img jumbo" alt="...">
+    <div class="container" id="prof_container">
+        <div class="card d-flex justify-content-between flex-row" id="box_container">
+        
+            <div id="box0" class="d-flex justify-content-start flex-row">
+                <div id="box1">
+                    <img :src= "'/static/uploads/' + user_posts[0].prof_pic" class="profile_pic" />
                 </div>
-                <div class="col-md-4">
-                    <div class="card-body">
-                        <h5 class="card-title">First name Last name</h5>
-                        <br>
-                        <p class="card-text">Location</p>
-                        <p class="card-text">Member since date</p>
-                        <br>
-                        <p class="card-text">Biography</p>
+                
+                <div id="box2">
+                        <h5 id="user_name" class="card-title">{{ user_posts[0].firstname }} {{ user_posts[0].lastname }}</h5>
+                        <p id="location">{{ user_posts[0].location }}</p>
+                        <p>Member since {{ user_posts[0].joined_on }}</p>
+                        <p>{{ user_posts[0].bio }}</p>
+                </div>
+            </div>    
+                <div id="box3" class="d-flex justify-content-between flex-column">
+                    <div class="d-flex justify-content-between flex-row">
+                    
+                        <div class="d-flex flex-column align-items-center">
+                            <h5>{{ user_posts[0].nPosts }}</h5>
+                            <h6>Posts</h6>
+                        </div>
+                        <div class="d-flex flex-column align-items-center">
+                            <h5>{{ user_posts[0].nFollows }}</h5>
+                            <h6>Followers</h6>
+                        </div>
+                        
                     </div>
+                    <button class="btn btn-secondary" id="follow-btn" @click="follow">Follow</button>
                 </div>
-                <div class="col-md-2">
-                    <div class="card-body">
-                        <p style="float:left;">Posts</p>
-                        <p style="float:right;">Followers</p>
-                        <button class="btn btn-secondary">Follow</button>
-                    </div>
-                </div>
-            </div>
         </div>
-        <ul v-if="user_posts.length != 0" >
-            <li v-for="post in user_posts" class="">
-                <div class="card">
-                    <div class="card-header">
-                        <router-link to="/users/<user_id>" class="nav-link">
-                            <img :src="post.user_id.photo" class="post-img" />
-                            {{ post.user_id }} <!--modify to show username-->
-                        </router-link>
-                    </div>
-                    <div class="card-body">
-                        <img :src="post.photo" class="" />
-                        <p class="card-text">{{ post.caption }}</p>
-                        <a href="#" class="btn btn-primary">Go somewhere</a>
-                    </div>
-                    <div class="card-footer text-muted">
-                        <p><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""># likes</p>
-                        <!--Example of badge with counter...might be able to use this for the likes counter-->
-                        <button type="button" class="btn btn-primary">
-                            Profile <span class="badge badge-light">9</span>
-                            <span class="sr-only">likes</span>
-                        </button>
-                        <!-- add date of post -->
-                    </div>
-                </div>
+        
+        <ul v-if="user_posts.length != 0" class="d-flex flex-row flex-sm-wrap" id="post_list">
+            <li v-for="post in user_posts" class="card">
+                <img :src="'/static/uploads/' + post.photo" class="card-img"/>
+                <div class="card-img-overlay"></div>
             </li>
         </ul>
         <div v-else>
@@ -375,19 +363,30 @@ const MyProfile = Vue.component('my-profile', {
     created: function() {
         let self = this;
         
-        fetch('/api/posts')
-        
+        fetch("/api/users/" + this.user_id + "/posts")
         .then(function(response) {
             return response.json();
         })
-        .then(function(data) {
-            console.log(data);
-            self.user_posts = data.user_posts;
+        .then(function(jsonResponse) {
+            self.user_posts = jsonResponse.user_posts;
         });
     },
     data: function() {
         return {
+            user_id: this.$route.params.user_id,
             user_posts: []
+        };
+    },
+    methods: {
+        follow: function(event) {
+            let follow_btn;
+            this.user_posts[0].nFollows += 1;
+            follow_btn = document.getElementById("follow-btn");
+            follow_btn.innerHTML = "Following";
+            follow_btn.disabled = true;
+            
+            // Send follow to database
+            
         }
     }
 });
@@ -481,7 +480,7 @@ const router = new VueRouter({
         {path: "/login", component: LoginForm },
         {path: "/logout", component: Logout },
         {path: "/explore", component: AllPosts },
-        {path: "/users/<user_id>", component: MyProfile },
+        {path: "/users/:user_id", component: MyProfile },
         {path: "/posts/new", component: NewPost },
         // This is a catch all route in case none of the above matches
         {path: "*", component: NotFound}

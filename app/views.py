@@ -119,14 +119,17 @@ def addPost(user_id):
         
     return jsonify({"errors": form_errors(form)})
 
-
 #Returns a single user's posts    
-@app.route('/api/users/<user_id>/posts', methods=["GET"])# This route works on postman
+@app.route('/api/users/<int:user_id>/posts', methods=["GET"])# This route works on postman
 #@login_required
 def viewPost(user_id):
     
     #connect to database and fectch user posts
     db_posts = Posts.query.filter_by(user_id=user_id).all()
+    user_info = Users.query.get(user_id)
+    followers = Follows.query.filter_by(user_id=user_id).all()
+    nFollows = len(followers)
+    nPosts = len(db_posts)
     
     user_posts = []
     
@@ -137,7 +140,15 @@ def viewPost(user_id):
               "user_id": posts.user_id,
               "photo": posts.photo,
               "caption": posts.caption,
-              "created_on": posts.created_on
+              "created_on": posts.created_on.strftime("%d %B %Y"),
+              "prof_pic": user_info.profile_photo,
+              "firstname": user_info.firstname,
+              "lastname": user_info.lastname,
+              "location": user_info.location,
+              "joined_on": user_info.joined_on.strftime("%B %Y"),
+              "bio": user_info.biography,
+              "nPosts": nPosts,
+              "nFollows": nFollows
             }
         user_posts.append(data)
         
@@ -173,11 +184,11 @@ def allPost():
     
     for posts in db_posts:
         
-        user= Users.query.filter_by(id=posts.user_id).first()
-        prof_pic=user.profile_photo
-        username= user.username
+        user = Users.query.filter_by(id=posts.user_id).first()
+        prof_pic = user.profile_photo
+        username = user.username
         
-        likes=Likes.query.filter_by(post_id = posts.id).count()
+        likes = Likes.query.filter_by(post_id = posts.id).count()
         
         data = {
               "prof_pic": prof_pic,
@@ -187,7 +198,7 @@ def allPost():
               "photo": posts.photo,
               "caption": posts.caption,
               "likes": likes,
-              "created_on": posts.created_on.strftime("%d %B, %Y")
+              "created_on": posts.created_on.strftime("%d %B %Y")
             }
         user_posts.append(data)
         
@@ -219,7 +230,6 @@ def addLike():
 
 #______________________________ END API Routes ________________________________#
 
-#Removed home and about render templates since we're using Vue -Lindsay
 
 #####_______________________________________________________________________________________________#####
 
