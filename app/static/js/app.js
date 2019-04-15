@@ -389,15 +389,17 @@ const MyProfile = Vue.component('my-profile', {
             
         },
         
-        add_follow: function(){
-            
+        add_follow: function(event){
+            let self = this;
             let id = JSON.parse(sessionStorage.user_id);
-            let follower_id = id['user_id'];
+            let follower_id = parseInt(id['user_id']);
+            let user_id = parseInt(this.user_id);
             
-            fetch("/api/users/"+ this.user_id +"/follow", {
+            fetch("/api/users/"+ user_id +"/follow", {
             method: 'POST',
-            body: JSON.stringify({follower: follower_id}),
+            body: JSON.stringify({follower_id: follower_id}),
             headers: {
+                'X-CSRFToken': token,
                 'Content-Type': 'application/json'
             },
             credentials: 'same-origin'

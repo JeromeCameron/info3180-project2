@@ -161,20 +161,24 @@ def follow(user_id):
     
     if request.method == "POST":
         #collect from data
-        # user_id = request.json['user_id']
         follower_id = request.json['follower_id']
         
-    
-        #connect to database and save data
-        # follow_user = Follows(user_id,follower_id)
-        # db.session.add(follow_user)
-        # db.session.commit()
+        if user_id == follower_id:
+            return jsonify({"message":"you cant follow yourself"})
+            
+        follows = Follows.query.filter_by(user_id=user_id, follower_id=follower_id).all()
+      
+        if len(follows)==0:
+            # connect to database and save data
+            follow_user = Follows(user_id,follower_id)
+            db.session.add(follow_user)
+            db.session.commit()
+            data = {"message": "You are now following that user"}
+            return jsonify({"message":data['message']})
+        else:
+            data = {"message": "You are already following that user"}
+            return jsonify({"message":data['message']})
         
-        # data = {"message": "You are now following that user"}
-        
-        # return jsonify({"message":data['message']})
-    return jsonify({"message": "here"})
-
 
 #Return all posts for all users   
 @app.route('/api/posts', methods=["GET"]) # This route works on postman
