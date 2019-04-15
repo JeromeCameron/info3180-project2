@@ -344,7 +344,7 @@ const MyProfile = Vue.component('my-profile', {
                         </div>
                         
                     </div>
-                    <button class="btn btn-secondary" id="follow-btn" @click="follow">Follow</button>
+                    <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
                 </div>
         </div>
         
@@ -387,6 +387,33 @@ const MyProfile = Vue.component('my-profile', {
             
             // Send follow to database
             
+        },
+        
+        add_follow: function(){
+            
+            let id = JSON.parse(sessionStorage.user_id);
+            let follower_id = id['user_id'];
+            
+            fetch("/api/users/"+ this.user_id +"/follow", {
+            method: 'POST',
+            body: JSON.stringify({follower: follower_id}),
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+            
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (jsonResponse) {
+                // display a success/error message
+                console.log(jsonResponse);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+            
         }
     }
 });
@@ -415,7 +442,7 @@ const NewPost = Vue.component('new-post', {
     data: function() {
         return {
             messages: [],
-        }
+        };
     },
     methods: {
         new_post: function() {
