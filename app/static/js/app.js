@@ -317,6 +317,9 @@ const Logout = Vue.component('logout', {
 const MyProfile = Vue.component('my-profile', {
     template: `
     <div class="container" id="prof_container">
+        <ul id="ul" v-if="messages">
+            <li v-for="message in messages" class="messages">{{ message }}</li>
+        </ul>
         <div class="card d-flex justify-content-between flex-row" id="box_container">
         
             <div id="box0" class="d-flex justify-content-start flex-row">
@@ -374,7 +377,8 @@ const MyProfile = Vue.component('my-profile', {
     data: function() {
         return {
             user_id: this.$route.params.user_id,
-            user_posts: []
+            user_posts: [],
+            messages: []
         };
     },
     methods: {
@@ -411,6 +415,18 @@ const MyProfile = Vue.component('my-profile', {
             .then(function (jsonResponse) {
                 // display a success/error message
                 console.log(jsonResponse);
+                if (jsonResponse.message) {
+                    self.messages = [];
+                    self.messages.push(jsonResponse.message);
+                    document.getElementById("ul").setAttribute('class', 'alert alert-success');
+                }
+                else {
+                    self.messages = [];
+                    for (var i = 0; i < jsonResponse.errors.length; i++) {
+                        self.messages.push(jsonResponse.errors[i]);
+                    }
+                    document.getElementById("ul").setAttribute('class', 'alert alert-danger');
+                }
             })
             .catch(function (error) {
                 console.log(error);
