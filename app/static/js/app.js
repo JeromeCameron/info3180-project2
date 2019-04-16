@@ -1,4 +1,7 @@
-
+/*global Vue*/
+/*global fetch*/
+/*global token*/
+/*global VueRouter*/
 
 Vue.component('app-header', {
     template: `
@@ -21,7 +24,7 @@ Vue.component('app-header', {
             </li>
               
             <li class="nav-item">
-                <router-link :to="'users/' + user_id.user_id" class="nav-link">My Profile</router-link>
+                <router-link :to="'/users/' + user_id.user_id" class="nav-link">My Profile</router-link>
             </li>
               
             <li class="nav-item">
@@ -32,12 +35,15 @@ Vue.component('app-header', {
       </div>
     </nav>
     `,
+    
     data: function() {
         return {
             user_id: JSON.parse(sessionStorage.user_id),
-        }
+        };
     }
 });
+
+// __________________________________________________________________________________________________________________________________________________________________________________
 
 Vue.component('app-footer', {
     template: `
@@ -50,6 +56,7 @@ Vue.component('app-footer', {
     `
 });
 
+// __________________________________________________________________________________________________________________________________________________________________________________
 const Welcome = Vue.component('welcome', {
     template: `
     <div class="container">
@@ -77,7 +84,9 @@ const Welcome = Vue.component('welcome', {
         </div>
     </div>
     `
-})
+});
+
+// __________________________________________________________________________________________________________________________________________________________________________________
 
 const AllPosts = Vue.component('all-posts', {
     template: `
@@ -98,7 +107,7 @@ const AllPosts = Vue.component('all-posts', {
                     </div>
                     <div class="post-footer text-muted">
                         <p style="float:left;"><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
-
+                        <p id="post_id" style="display:none;">{{post.id}}</p>
                         <p style="float:right;">{{ post.created_on }}</p>
                     </div>
                 </div>
@@ -127,10 +136,55 @@ const AllPosts = Vue.component('all-posts', {
         return {
             user_posts: []
         };
+    },
+    methods: {
+
+        add_like: function(event){
+            let self = this;
+            let id = JSON.parse(sessionStorage.user_id);
+            let user_id = parseInt(id['user_id']);
+            let post_id = document.getElementById("post_id").innerHTML; //get post id
+            
+            fetch("/api/post/"+ post_id +"/like", {
+            method: 'POST',
+            body: JSON.stringify({user_id: user_id}),
+            headers: {
+                'X-CSRFToken': token,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+            
+            })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (jsonResponse) {
+                // display a success/error message
+                console.log(jsonResponse);
+                if (jsonResponse.message) {
+                    self.messages = [];
+                    self.messages.push(jsonResponse.message);
+                    document.getElementById("ul").setAttribute('class', 'alert alert-success');
+                }
+                else {
+                    self.messages = [];
+                    for (var i = 0; i < jsonResponse.errors.length; i++) {
+                        self.messages.push(jsonResponse.errors[i]);
+                    }
+                    document.getElementById("ul").setAttribute('class', 'alert alert-danger');
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+            
+        }
     }
 });
 
+// __________________________________________________________________________________________________________________________________________________________________________________
 // Register a new user
+
 const ProfileForm = Vue.component('profile-form', {
     template: `
     <div class="container">
@@ -179,7 +233,7 @@ const ProfileForm = Vue.component('profile-form', {
     data: function() {
         return {
             messages: [],
-        }
+        };
     },
     methods: {
         newProfile: function() {
@@ -201,14 +255,16 @@ const ProfileForm = Vue.component('profile-form', {
             .then(function (jsonResponse) {
                 // display a success/error message
                 console.log(jsonResponse);
-                router.push({path:'/login'})
+                router.push({path:'/login'});
             })
             .catch(function (error) {
                 console.log(error);
             });
         },
     }
-})
+});
+
+// __________________________________________________________________________________________________________________________________________________________________________________
 
 const LoginForm = Vue.component('login-form', {
     template: `
@@ -235,7 +291,7 @@ const LoginForm = Vue.component('login-form', {
     data: function() {
         return {
             messages: [],
-        }
+        };
     },
     methods: {
         login: function() {
@@ -266,7 +322,7 @@ const LoginForm = Vue.component('login-form', {
                     self.message = [];
                     router.push("explore");
                     // save user id in session
-                    sessionStorage.user_id= JSON.stringify({"user_id":jsonResponse.id})
+                    sessionStorage.user_id= JSON.stringify({"user_id":jsonResponse.id});
                     // logged_in = true; was tinking of using this to switch the login/logout in navbar but nah can delete
                 }
             })
@@ -275,7 +331,9 @@ const LoginForm = Vue.component('login-form', {
             });
         },
     }
-})
+});
+
+// __________________________________________________________________________________________________________________________________________________________________________________
 
 const Logout = Vue.component('logout', {
     template: `
@@ -284,7 +342,7 @@ const Logout = Vue.component('logout', {
     </div>
     `,
     data: function () {
-        return {}
+        return {};
     },
     methods: {
         logout: function() {
@@ -311,9 +369,11 @@ const Logout = Vue.component('logout', {
             });
         },
     }
-})
+});
 
+// __________________________________________________________________________________________________________________________________________________________________________________
 // view a users profile
+
 const MyProfile = Vue.component('my-profile', {
     template: `
     <div class="container" id="prof_container">
@@ -399,6 +459,14 @@ const MyProfile = Vue.component('my-profile', {
             let follower_id = parseInt(id['user_id']);
             let user_id = parseInt(this.user_id);
             
+            
+            let follow_btn;
+            this.user_posts[0].nFollows += 1;
+            follow_btn = document.getElementById("follow-btn");
+            follow_btn.innerHTML = "Following";
+            follow_btn.disabled = true;
+            
+            
             fetch("/api/users/"+ user_id +"/follow", {
             method: 'POST',
             body: JSON.stringify({follower_id: follower_id}),
@@ -408,7 +476,7 @@ const MyProfile = Vue.component('my-profile', {
             },
             credentials: 'same-origin'
             
-        })
+            })
             .then(function (response) {
                 return response.json();
             })
@@ -435,6 +503,8 @@ const MyProfile = Vue.component('my-profile', {
         }
     }
 });
+
+// __________________________________________________________________________________________________________________________________________________________________________________
 
 const NewPost = Vue.component('new-post', {
     template: `
@@ -488,7 +558,7 @@ const NewPost = Vue.component('new-post', {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
-                    postForm.reset()
+                    postForm.reset();
                 }
                 else {
                     self.messages = [];
@@ -503,7 +573,9 @@ const NewPost = Vue.component('new-post', {
             });
         },
     }
-})
+});
+
+// __________________________________________________________________________________________________________________________________________________________________________________
 
 const NotFound = Vue.component('not-found', {
     template: `
@@ -512,9 +584,11 @@ const NotFound = Vue.component('not-found', {
     </div>
     `,
     data: function () {
-        return {}
+        return {};
     }
-})
+});
+
+// __________________________________________________________________________________________________________________________________________________________________________________
 
 // Define Routes
 const router = new VueRouter({
@@ -532,6 +606,7 @@ const router = new VueRouter({
     ]
 });
 
+// ____________________________________________________________________________
 // Instantiate our main Vue Instance
 let app = new Vue({
     el: "#app",

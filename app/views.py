@@ -49,7 +49,8 @@ def register():
         return jsonify({"message":data['message']})
         
     return jsonify({"errors": form_errors(form)})
-    
+
+#______________________________________________________________________________#    
 
 #Accepts login credentials as username and password    
 @app.route('/api/auth/login', methods=["POST"])
@@ -73,7 +74,9 @@ def log_in():
             return jsonify({"message":data['message'], "id":session['id'], "token":data['token']})
         
         return jsonify({"error": "Incorrect username or password"})
-        
+
+#______________________________________________________________________________#  
+
 #logout user
 @app.route('/api/auth/logout', methods=["GET"])
 #@login_required
@@ -84,6 +87,7 @@ def logout():
     data = {"message": "See you soon!"}
     return jsonify({"message":data['message']})
 
+#______________________________________________________________________________#  
 
 #Used for adding posts to users feed
 @app.route('/api/users/<user_id>/posts', methods=["POST"]) # This route works on postman
@@ -119,6 +123,8 @@ def addPost(user_id):
         
     return jsonify({"errors": form_errors(form)})
 
+#______________________________________________________________________________#  
+
 #Returns a single user's posts    
 @app.route('/api/users/<int:user_id>/posts', methods=["GET"])# This route works on postman
 #@login_required
@@ -153,6 +159,7 @@ def viewPost(user_id):
         user_posts.append(data)
         
     return jsonify({'user_posts':user_posts})
+#______________________________________________________________________________#  
 
 #Create a follow relationship between the current user and the target user   
 @app.route('/api/users/<int:user_id>/follow', methods=["POST"]) # This route works on postman
@@ -182,7 +189,16 @@ def follow(user_id):
                 #if user already following
                 data = {"message": "You are already following "+ username}
                 return jsonify({"message":data['message']})
-        
+#______________________________________________________________________________#  
+
+#Get total number of followers for a user
+@app.route('/api/users/<int:user_id>/follow', methods=["GET"]) 
+#@login_required
+def total_followers(user_id):
+    
+    follows = Follows.query.filter_by(user_id=user_id).count()
+    
+#______________________________________________________________________________#  
 
 #Return all posts for all users   
 @app.route('/api/posts', methods=["GET"]) # This route works on postman
@@ -215,30 +231,30 @@ def allPost():
         
     return jsonify({'user_posts':user_posts})
  
-    
+#______________________________________________________________________________#  
+
 #Set a like on the current Post by the logged user    
-@app.route('/api/post/<post_id>/like', methods=["POST"]) # This route works on postman
+@app.route('/api/post/<int:post_id>/like', methods=["POST"]) # This route works on postman
 #@login_required
 def addLike():
     
-    #collect from data
-    user_id = request.json['user_id']
-    post_id = request.json['post_id']
-
-    #connect to database and save data
-    likes = Likes(user_id,post_id)
-    db.session.add(likes)
-    db.session.commit()
-    
-    count = Likes.query.filter_by(post_id=post_id).count()
-    
-    data = {
-              "message": "Post liked!",
-              "likes": count
-            }
-    
-    return jsonify({'data':data})
-
+    if request.method == "POST":
+        #collect data
+        user_id = request.json['user_id']
+        
+        check_likes = Likes.query.filter_by(user_id=user_id, post_id=post_id).all()
+       
+        if len(check_likes)==0:
+            # connect to database and save data
+            add_like = Likes(user_id,post_id)
+            db.session.add(add_like)
+            db.session.commit()
+            count = Likes.query.filter_by(post_id=post_id).count()
+            return jsonify({"message": "Post liked!", "likes": count})
+        else:
+            #if user already liked post
+            return jsonify({"message": "You already liked this post "})
+            
 #______________________________ END API Routes ________________________________#
 
 
