@@ -293,8 +293,23 @@ def addLike(post_id):
             #if user already liked post
             return jsonify({"message": "You already liked this post "})
             
-#______________________________ END API Routes ________________________________#
+#______________________________ END Required API Routes ________________________________#
 
+#______________________________ Extra Feature Routes ___________________________________#
+
+@app.route('/api/posts/<int:user_id>/likes', methods=["GET"])
+#@login_required
+def find_likes(user_id):
+    
+    send_likes = []
+    
+    db_likes = Likes.query.filter_by(user_id=user_id).all()
+    
+    for likes in db_likes:
+        data = {"user_id": likes.user_id, "post_id": likes.post_id}
+        send_likes.append(data)
+    
+    return jsonify({"send_likes":send_likes})
 
 #####_______________________________________________________________________________________________#####
 

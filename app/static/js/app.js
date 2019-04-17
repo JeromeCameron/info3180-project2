@@ -97,7 +97,7 @@ const AllPosts = Vue.component('all-posts', {
         <router-link to="/posts/new" class="btn btn-primary btn-addPost">New Post</router-link>
         <ul v-if="user_posts.length != 0">
             <li v-for="post in user_posts">
-                <div v-on:click="add_like" class="post card" :id="post.id">
+                <div v-on:dblclick="add_like" class="post card" :id="post.id">
                         <router-link :to="'/users/' + post.user_id" class="nav-link">
                             <h6 class="card-subtitle text-muted">
                                 <img :src= "'/static/uploads/' + post.prof_pic" class="tiny" />
@@ -109,7 +109,12 @@ const AllPosts = Vue.component('all-posts', {
                         <p class="card-text">{{ post.caption }}</p>
                     </div>
                     <div class="post-footer text-muted">
-                        <p style="float:left;"><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
+                        <p style="float:left;" v-if="like_history(post.id)">
+                        <img src="/static/icons/like.png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
+                        
+                        <p style="float:left;" v-else>
+                        <img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
+                        
                         <p style="float:right;">{{ post.created_on }}</p>
                     </div>
                 </div>
@@ -130,19 +135,29 @@ const AllPosts = Vue.component('all-posts', {
         })
         .then(function(jsonResponse) {
             self.user_posts=jsonResponse.user_posts;
-
-            console.log(jsonResponse.user_posts);
-            // return self.posts
-            // self.user_posts = data.user_posts;
+        });
+        //--------------- fetch likes data for add feature used in like_history function ------------------
+        fetch("/api/posts/"+ this.logged_in_user +"/likes")
+            
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(jsonResponse) {
+            self.likes_log=(jsonResponse.send_likes);
         });
     },
+    
     data: function() {
         return {
             user_posts: [],
             messages: [],
-            num_likes: []
+            logged_in_user: JSON.parse(sessionStorage.user_id)["user_id"],
+            post_id: 0,
+            likes_log: [],
+            like_post: false
         };
     },
+    
     methods: {
 
         add_like: function(event){ //it works.....
@@ -151,10 +166,9 @@ const AllPosts = Vue.component('all-posts', {
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let user_id = parseInt(id['user_id']);
-            let post_id = event.currentTarget.id;
-            console.log(post_id);
+            self.post_id = event.currentTarget.id;
             
-            fetch("/api/post/"+ post_id +"/like", {
+            fetch("/api/post/"+ this.post_id +"/like", {
             method: 'POST',
             body: JSON.stringify({user_id: user_id}),
             headers: {
@@ -173,6 +187,8 @@ const AllPosts = Vue.component('all-posts', {
                 if (jsonResponse.message) {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
+                    
+                    //run fetch again to update like count in real time
                     fetch('/api/posts')
         
                     .then(function(response) {
@@ -196,6 +212,17 @@ const AllPosts = Vue.component('all-posts', {
                 console.log(error);
             });
             
+        },
+        
+        //function checks if a user already liked a post and allows the like heart to change to red if post already liked.
+        like_history: function(post_id){
+            let self = this;
+            
+            for(let x in this.likes_log){
+                if(post_id == this.likes_log[x].post_id){
+                    return true;
+                }
+            }
         }
     }
 });
