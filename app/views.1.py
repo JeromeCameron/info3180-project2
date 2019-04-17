@@ -139,6 +139,26 @@ def viewPost(user_id):
     
     user_posts = []
     
+    if user_id == follower_id: #prevent user from following himself
+        data = {"message": "you cant follow yourself"}
+        return jsonify({"message":data['message']})
+    else:
+        follows = Follows.query.filter_by(user_id=user_id, follower_id=follower_id).all()
+        user_info = Users.query.get(user_id)
+        username = user_info.firstname + ' '+ user_info.lastname
+      
+        if len(follows)==0:
+            # connect to database and save data
+            follow_user = Follows(user_id,follower_id)
+            db.session.add(follow_user)
+            db.session.commit()
+            data = {"message": "You are now following " + username}
+            return jsonify({"message":data['message']})
+        else:
+            #if user already following
+            data = {"message": "You are already following "+ username}
+            return jsonify({"message":data['message']})
+    
     user_data = {
               "user_id": posts.user_id,
               "prof_pic": user_info.profile_photo,
@@ -243,7 +263,7 @@ def allPost():
 #Set a like on the current Post by the logged user    
 @app.route('/api/post/<int:post_id>/like', methods=["POST"]) # This route works on postman
 #@login_required
-def addLike(post_id):
+def addLike():
     
     if request.method == "POST":
         #collect data

@@ -295,7 +295,7 @@ def addLike(post_id):
             
 #______________________________ END Required API Routes ________________________________#
 
-#______________________________ Extra Feature Routes ___________________________________#
+#______________________________ Extra Feature API Routes ___________________________________#
 
 @app.route('/api/posts/<int:user_id>/likes', methods=["GET"])
 #@login_required
@@ -310,6 +310,21 @@ def find_likes(user_id):
         send_likes.append(data)
     
     return jsonify({"send_likes":send_likes})
+    
+
+@app.route('/api/posts/<int:user_id>/follows', methods=["GET"])
+#@login_required
+def find_followers(user_id):
+    
+    followers = []
+    
+    db_follows = Follows.query.filter_by(follower_id=user_id).all()
+    
+    for follows in db_follows:
+        data = {"user_id": follows.user_id, "post_id": follows.follower_id}
+        followers.append(data)
+    
+    return jsonify({"followers":followers})
 
 #####_______________________________________________________________________________________________#####
 

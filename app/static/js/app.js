@@ -134,6 +134,7 @@ const AllPosts = Vue.component('all-posts', {
             return response.json();
         })
         .then(function(jsonResponse) {
+            console.log(jsonResponse);
             self.user_posts=jsonResponse.user_posts;
         });
         //--------------- fetch likes data for add feature used in like_history function ------------------
@@ -452,7 +453,15 @@ const MyProfile = Vue.component('my-profile', {
                         </div>
                         
                     </div>
+                    
+                    <div v-if="followers(user_posts[0].user_id)">
+                    <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
+                    </div>
+                    
+                    <div v-else>
                     <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
+                    </div>
+                    
                 </div>
         </div>
         
@@ -479,12 +488,25 @@ const MyProfile = Vue.component('my-profile', {
             console.log(jsonResponse);
             self.user_posts = jsonResponse.user_posts;
         });
+        
+        fetch("/api/posts/"+ this.logged_in_user +"/follows")
+            
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(jsonResponse) {
+            self.follows_log=(jsonResponse.followers);
+            console.log(self.follows_log);
+        });
     },
+    
     data: function() {
         return {
             user_id: this.$route.params.user_id,
             user_posts: [],
-            messages: []
+            messages: [],
+            logged_in_user: JSON.parse(sessionStorage.user_id)["user_id"],
+            follows_log: []
         };
     },
     methods: {
@@ -572,9 +594,17 @@ const MyProfile = Vue.component('my-profile', {
                 console.log(error);
             });
             
+        },
+        
+        //function checks if a user already follows another user.
+        followers: function(follower_id){
+            let self = this;
             
-            
-            
+            for(let x in this.follows_log){
+                if(follower_id == this.follows_log[x].user_id){
+                    return true;
+                }
+            }
         }
     }
 });
