@@ -91,10 +91,13 @@ const Welcome = Vue.component('welcome', {
 const AllPosts = Vue.component('all-posts', {
     template: `
     <div class="post-container">
-        <router-link to="/posts/new" class="btn btn-primary" style="float:right;">New Post</router-link>
+        <ul id="ul" v-if="messages">
+                <li v-for="message in messages" class="messages">{{ message }}</li>
+        </ul>
+        <router-link to="/posts/new" class="btn btn-primary btn-addPost">New Post</router-link>
         <ul v-if="user_posts.length != 0">
             <li v-for="post in user_posts">
-                <div class="post card">
+                <div v-on:click="add_like" class="post card" :id="post.id">
                         <router-link :to="'/users/' + post.user_id" class="nav-link">
                             <h6 class="card-subtitle text-muted">
                                 <img :src= "'/static/uploads/' + post.prof_pic" class="tiny" />
@@ -107,7 +110,6 @@ const AllPosts = Vue.component('all-posts', {
                     </div>
                     <div class="post-footer text-muted">
                         <p style="float:left;"><img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
-                        <p id="post_id" style="display:none;">{{post.id}}</p>
                         <p style="float:right;">{{ post.created_on }}</p>
                     </div>
                 </div>
@@ -128,22 +130,29 @@ const AllPosts = Vue.component('all-posts', {
         })
         .then(function(jsonResponse) {
             self.user_posts=jsonResponse.user_posts;
+
+            console.log(jsonResponse.user_posts);
             // return self.posts
             // self.user_posts = data.user_posts;
         });
     },
     data: function() {
         return {
-            user_posts: []
+            user_posts: [],
+            messages: [],
+            num_likes: []
         };
     },
     methods: {
 
-        add_like: function(event){
+        add_like: function(event){ //it works.....
+            //event.preventDefault();
+            
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let user_id = parseInt(id['user_id']);
-            let post_id = document.getElementById("post_id").innerHTML; //get post id
+            let post_id = event.currentTarget.id;
+            console.log(post_id);
             
             fetch("/api/post/"+ post_id +"/like", {
             method: 'POST',
@@ -164,6 +173,15 @@ const AllPosts = Vue.component('all-posts', {
                 if (jsonResponse.message) {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
+                    fetch('/api/posts')
+        
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(jsonResponse) {
+                        self.user_posts=jsonResponse.user_posts;
+                    });
+                    
                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
                 }
                 else {
@@ -402,7 +420,7 @@ const MyProfile = Vue.component('my-profile', {
                             <h6>Posts</h6>
                         </div>
                         <div class="d-flex flex-column align-items-center">
-                            <h5>{{ user_posts[0].nFollows }}</h5>
+                            <h5 id="nfollowings">{{ user_posts[0].nFollows }}</h5>
                             <h6>Followers</h6>
                         </div>
                         
@@ -431,6 +449,7 @@ const MyProfile = Vue.component('my-profile', {
             return response.json();
         })
         .then(function(jsonResponse) {
+            console.log(jsonResponse);
             self.user_posts = jsonResponse.user_posts;
         });
     },
@@ -442,16 +461,16 @@ const MyProfile = Vue.component('my-profile', {
         };
     },
     methods: {
-        follow: function(event) {
-            let follow_btn;
-            this.user_posts[0].nFollows += 1;
-            follow_btn = document.getElementById("follow-btn");
-            follow_btn.innerHTML = "Following";
-            follow_btn.disabled = true;
+        // follow: function(event) {
+        //     let follow_btn;
+        //     this.user_posts[0].nFollows += 1;
+        //     follow_btn = document.getElementById("follow-btn");
+        //     follow_btn.innerHTML = "Following";
+        //     follow_btn.disabled = true;
             
             // Send follow to database
             
-        },
+        // },
         
         add_follow: function(event){
             let self = this;
@@ -461,10 +480,11 @@ const MyProfile = Vue.component('my-profile', {
             
             
             let follow_btn;
-            this.user_posts[0].nFollows += 1;
+            // this.user_posts[0].nFollows += 1;
             follow_btn = document.getElementById("follow-btn");
             follow_btn.innerHTML = "Following";
             follow_btn.disabled = true;
+            follow_num = document.getElementById("nfollowings");
             
             
             fetch("/api/users/"+ user_id +"/follow", {
@@ -500,9 +520,199 @@ const MyProfile = Vue.component('my-profile', {
                 console.log(error);
             });
             
+            
+            fetch("/api/users/"+ user_id +"/follow", {
+            method: 'GET',
+            body: {},
+            headers: {
+                'X-CSRFToken': token,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+            
+            })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (jsonResponse) {
+                // display a success/error message
+                console.log(jsonResponse);
+                
+                follow_num.innerHTML = jsonResponse.followers;
+                
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+            
+            
+            
+            
         }
     }
 });
+
+// const MyProfile = Vue.component('my-profile', {
+//     template: `
+//     <div class="container" id="prof_container">
+//         <ul id="ul" v-if="messages">
+//             <li v-for="message in messages" class="messages">{{ message }}</li>
+//         </ul>
+//         <div class="card d-flex justify-content-between flex-row" id="box_container">
+        
+//             <div id="box0" class="d-flex justify-content-start flex-row">
+//                 <div id="box1">
+//                     <img :src= "'/static/uploads/' + user_info.prof_pic" class="profile_pic" />
+//                 </div>
+                
+//                 <div id="box2">
+//                         <h5 id="user_name" class="card-title">{{ user_info.firstname }} {{ user_info.lastname }}</h5>
+//                         <p id="location">{{ user_info.location }}</p>
+//                         <p>Member since {{ user_info.joined_on }}</p>
+//                         <p>{{ user_info.bio }}</p>
+//                 </div>
+//             </div>    
+//                 <div id="box3" class="d-flex justify-content-between flex-column">
+//                     <div class="d-flex justify-content-between flex-row">
+                    
+//                         <div class="d-flex flex-column align-items-center">
+//                             <h5>{{ user_info.nPosts }}</h5>
+//                             <h6>Posts</h6>
+//                         </div>
+//                         <div class="d-flex flex-column align-items-center">
+//                             <h5 id="nfollowings">{{ user_info.nFollows }}</h5>
+//                             <h6>Followers</h6>
+//                         </div>
+                        
+//                     </div>
+//                     <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
+//                 </div>
+//         </div>
+        
+//         <ul v-if="user_posts.length != 0" class="d-flex flex-row flex-sm-wrap" id="post_list">
+//             <li v-for="post in user_posts" class="card">
+//                 <img :src="'/static/uploads/' + post.photo" class="card-img"/>
+//                 <div class="card-img-overlay"></div>
+//             </li>
+//         </ul>
+//         <div v-else>
+//             <p>Nothing to display yet</p>
+//             <router-link to="/posts/new" class="btn btn-primary">New Post</router-link>
+//         </div>
+//     </div>
+//     `,
+//     created: function() {
+//         let self = this;
+        
+//         fetch("/api/users/" + this.user_id + "/posts")
+//         .then(function(response) {
+//             return response.json();
+//         })
+//         .then(function(jsonResponse) {
+//             console.log(jsonResponse);
+//             self.user_posts = jsonResponse.user_posts;
+//             self.user_info = jsonResponse.user_info;
+//         });
+//     },
+//     data: function() {
+//         return {
+//             user_id: this.$route.params.user_id,
+//             user_posts: [],
+//             user_info: [],
+//             messages: []
+//         };
+//     },
+//     methods: {
+//         // follow: function(event) {
+//         //     let follow_btn;
+//         //     this.user_posts[0].nFollows += 1;
+//         //     follow_btn = document.getElementById("follow-btn");
+//         //     follow_btn.innerHTML = "Following";
+//         //     follow_btn.disabled = true;
+            
+//             // Send follow to database
+            
+//         // },
+        
+//         add_follow: function(event){
+//             let self = this;
+//             let id = JSON.parse(sessionStorage.user_id);
+//             let follower_id = parseInt(id['user_id']);
+//             let user_id = parseInt(this.user_id);
+            
+            
+//             let follow_btn;
+//             // this.user_posts[0].nFollows += 1;
+//             follow_btn = document.getElementById("follow-btn");
+//             follow_btn.innerHTML = "Following";
+//             follow_btn.disabled = true;
+//             follow_num = document.getElementById("nfollowings");
+            
+            
+//             fetch("/api/users/"+ user_id +"/follow", {
+//             method: 'POST',
+//             body: JSON.stringify({follower_id: follower_id}),
+//             headers: {
+//                 'X-CSRFToken': token,
+//                 'Content-Type': 'application/json'
+//             },
+//             credentials: 'same-origin'
+            
+//             })
+//             .then(function (response) {
+//                 return response.json();
+//             })
+//             .then(function (jsonResponse) {
+//                 // display a success/error message
+//                 console.log(jsonResponse);
+//                 if (jsonResponse.message) {
+//                     self.messages = [];
+//                     self.messages.push(jsonResponse.message);
+//                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
+//                 }
+//                 else {
+//                     self.messages = [];
+//                     for (var i = 0; i < jsonResponse.errors.length; i++) {
+//                         self.messages.push(jsonResponse.errors[i]);
+//                     }
+//                     document.getElementById("ul").setAttribute('class', 'alert alert-danger');
+//                 }
+//             })
+//             .catch(function (error) {
+//                 console.log(error);
+//             });
+            
+            
+//             fetch("/api/users/"+ user_id +"/follow", {
+//             method: 'GET',
+//             body: {},
+//             headers: {
+//                 'X-CSRFToken': token,
+//                 'Content-Type': 'application/json'
+//             },
+//             credentials: 'same-origin'
+            
+//             })
+//             .then(function (response) {
+//                 return response.json();
+//             })
+//             .then(function (jsonResponse) {
+//                 // display a success/error message
+//                 console.log(jsonResponse);
+                
+//                 follow_num.innerHTML = jsonResponse.followers;
+                
+//             })
+//             .catch(function (error) {
+//                 console.log(error);
+//             });
+            
+            
+            
+            
+//         }
+//     }
+// });
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 

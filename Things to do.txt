@@ -13,3 +13,4 @@
 
 6. Find a better way to send user banner data for MyProfile component; currently, if a user has no posts their banner
         will be blank. This is because the banner data is sent with each posts' data
+7. Navbar not showing without a refresh when user logs in

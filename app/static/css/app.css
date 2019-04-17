@@ -137,6 +137,7 @@ ul {
 .post-container {
     width: 50%;
     margin: auto;
+
 }
 
 ul.navbar-nav.ml-auto{
@@ -228,3 +229,13 @@ ul.navbar-nav.ml-auto{
 }
     
 /*______________________________________________________________________________*/
+
+
+/* Styles Explore Page*/
+/*______________________________________________________________________________*/
+.btn-addPost{
+    position: absolute;
+    right: 15%;
+    width: 200px;
+}
+

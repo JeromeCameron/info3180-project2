@@ -128,43 +128,6 @@ def addPost(user_id):
 #Returns a single user's posts    
 @app.route('/api/users/<int:user_id>/posts', methods=["GET"])# This route works on postman
 #@login_required
-# def viewPost(user_id):
-    
-#     #connect to database and fectch user posts
-#     db_posts = Posts.query.filter_by(user_id=user_id).all()
-#     user_info = Users.query.get(user_id)
-#     followers = Follows.query.filter_by(user_id=user_id).all()
-#     nFollows = len(followers)
-#     nPosts = len(db_posts)
-    
-#     user_posts = []
-    
-#     user_data = {
-#               "user_id": posts.user_id,
-#               "prof_pic": user_info.profile_photo,
-#               "firstname": user_info.firstname,
-#               "lastname": user_info.lastname,
-#               "location": user_info.location,
-#               "joined_on": user_info.joined_on.strftime("%B %Y"),
-#               "bio": user_info.biography,
-#               "nPosts": nPosts,
-#               "nFollows": nFollows
-#             }
-            
-#     for posts in db_posts:
-        
-#         posts_data = {
-#               "id": posts.id,
-#               "photo": posts.photo,
-#               "caption": posts.caption,
-#             #   "created_on": posts.created_on.strftime("%d %B %Y"),
-#             }
-#         user_posts.append(posts_data)
-        
-#     return jsonify({"user_posts":user_posts, "user_info":user_data})
-#     # return jsonify({'user_posts':user_posts})
-#     # data =  {"token":"JWT token should here","message": "Welcome "+user.firstname}
-#     # return jsonify({"message":data['message'], "id":session['id'], "token":data['token']})
 def viewPost(user_id):
     
     #connect to database and fectch user posts
@@ -176,14 +139,8 @@ def viewPost(user_id):
     
     user_posts = []
     
-    for posts in db_posts:
-        
-        data = {
-              "id": posts.id,
+    user_data = {
               "user_id": posts.user_id,
-              "photo": posts.photo,
-              "caption": posts.caption,
-              "created_on": posts.created_on.strftime("%d %B %Y"),
               "prof_pic": user_info.profile_photo,
               "firstname": user_info.firstname,
               "lastname": user_info.lastname,
@@ -193,9 +150,21 @@ def viewPost(user_id):
               "nPosts": nPosts,
               "nFollows": nFollows
             }
-        user_posts.append(data)
+            
+    for posts in db_posts:
         
-    return jsonify({'user_posts':user_posts})
+        posts_data = {
+              "id": posts.id,
+              "photo": posts.photo,
+              "caption": posts.caption,
+            #   "created_on": posts.created_on.strftime("%d %B %Y"),
+            }
+        user_posts.append(posts_data)
+        
+    return jsonify({'user_posts':user_posts, 'user_info':user_data})
+    # return jsonify({'user_posts':user_posts})
+    # data =  {"token":"JWT token should here","message": "Welcome "+user.firstname}
+    # return jsonify({"message":data['message'], "id":session['id'], "token":data['token']})
 #______________________________________________________________________________#  
 
 #Create a follow relationship between the current user and the target user   
