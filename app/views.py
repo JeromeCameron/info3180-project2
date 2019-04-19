@@ -79,7 +79,7 @@ def log_in():
 
 #logout user
 @app.route('/api/auth/logout', methods=["GET"])
-#@login_required
+@login_required
 def logout():
     
     logout_user()
@@ -91,7 +91,7 @@ def logout():
 
 #Used for adding posts to users feed
 @app.route('/api/users/<user_id>/posts', methods=["POST"]) # This route works on postman
-#@login_required
+@login_required
 def addPost(user_id):
     
     form = posts()
@@ -127,53 +127,11 @@ def addPost(user_id):
 
 #Returns a single user's posts    
 @app.route('/api/users/<int:user_id>/posts', methods=["GET"])# This route works on postman
-#@login_required
-# def viewPost(user_id):
-    
-#     #connect to database and fectch user posts
-#     db_posts = Posts.query.filter_by(user_id=user_id).all()
-#     user_info = Users.query.get(user_id)
-#     followers = Follows.query.filter_by(user_id=user_id).all()
-#     nFollows = len(followers)
-#     nPosts = len(db_posts)
-    
-#     user_posts = []
-    
-#     user_data = {
-#               "user_id": posts.user_id,
-#               "prof_pic": user_info.profile_photo,
-#               "firstname": user_info.firstname,
-#               "lastname": user_info.lastname,
-#               "location": user_info.location,
-#               "joined_on": user_info.joined_on.strftime("%B %Y"),
-#               "bio": user_info.biography,
-#               "nPosts": nPosts,
-#               "nFollows": nFollows
-#             }
-            
-#     for posts in db_posts:
-        
-#         posts_data = {
-#               "id": posts.id,
-#               "photo": posts.photo,
-#               "caption": posts.caption,
-#             #   "created_on": posts.created_on.strftime("%d %B %Y"),
-#             }
-#         user_posts.append(posts_data)
-        
-#     return jsonify({"user_posts":user_posts, "user_info":user_data})
-#     # return jsonify({'user_posts':user_posts})
-#     # data =  {"token":"JWT token should here","message": "Welcome "+user.firstname}
-#     # return jsonify({"message":data['message'], "id":session['id'], "token":data['token']})
+@login_required
 def viewPost(user_id):
-    
+
     #connect to database and fectch user posts
     db_posts = Posts.query.filter_by(user_id=user_id).all()
-    user_info = Users.query.get(user_id)
-    followers = Follows.query.filter_by(user_id=user_id).all()
-    nFollows = len(followers)
-    nPosts = len(db_posts)
-    
     user_posts = []
     
     for posts in db_posts:
@@ -183,24 +141,47 @@ def viewPost(user_id):
               "user_id": posts.user_id,
               "photo": posts.photo,
               "caption": posts.caption,
-              "created_on": posts.created_on.strftime("%d %B %Y"),
-              "prof_pic": user_info.profile_photo,
-              "firstname": user_info.firstname,
-              "lastname": user_info.lastname,
-              "location": user_info.location,
-              "joined_on": user_info.joined_on.strftime("%B %Y"),
-              "bio": user_info.biography,
-              "nPosts": nPosts,
-              "nFollows": nFollows
+              "created_on": posts.created_on.strftime("%d %B %Y")
             }
+            
         user_posts.append(data)
-        
+    #return all post for a user    
     return jsonify({'user_posts':user_posts})
+    
 #______________________________________________________________________________#  
+
+#Returns a single user's profile    
+@app.route('/api/users/<int:user_id>', methods=["GET"])
+@login_required
+def viewUser(user_id):
+    
+    #connect to database and fectch user
+    user_info = Users.query.get(user_id)
+    followers = Follows.query.filter_by(user_id=user_id).all()
+    db_posts = Posts.query.filter_by(user_id=user_id).all()
+    npost = len(db_posts)
+    nFollows = len(followers)
+
+    user = {
+          "user_id": user_info.id,
+          "profile_photo": user_info.profile_photo,
+          "firstname": user_info.firstname,
+          "lastname": user_info.lastname,
+          "location": user_info.location,
+          "joined_on": user_info.joined_on.strftime("%B %Y"),
+          "biography": user_info.biography,
+          "nFollows": nFollows,
+          "nPosts": npost
+        }
+
+    #return logged-in user    
+    return jsonify({'user':user})
+    
+#______________________________________________________________________________# 
 
 #Create a follow relationship between the current user and the target user   
 @app.route('/api/users/<int:user_id>/follow', methods=["POST"]) # This route works on postman
-#@login_required
+@login_required
 def follow(user_id):
     
     if request.method == "POST":
@@ -208,8 +189,8 @@ def follow(user_id):
         follower_id = request.json['follower_id']
         
         if user_id == follower_id: #prevent user from following himself
-            data = {"message": "you cant follow yourself"}
-            return jsonify({"message":data['message']})
+            data = {"info": "Sorry, you can't follow yourself"}
+            return jsonify({"info":data['info']})
         else:
             follows = Follows.query.filter_by(user_id=user_id, follower_id=follower_id).all()
             user_info = Users.query.get(user_id)
@@ -224,13 +205,13 @@ def follow(user_id):
                 return jsonify({"message":data['message']})
             else:
                 #if user already following
-                data = {"message": "You are already following "+ username}
-                return jsonify({"message":data['message']})
+                data = {"info": "You are already following "+ username}
+                return jsonify({"info":data['info']})
 #______________________________________________________________________________#  
 
 #Get total number of followers for a user
 @app.route('/api/users/<int:user_id>/follow', methods=["GET"]) 
-#@login_required
+@login_required
 def total_followers(user_id):
     
     follows = Follows.query.filter_by(user_id=user_id).count()
@@ -240,7 +221,7 @@ def total_followers(user_id):
 
 #Return all posts for all users   
 @app.route('/api/posts', methods=["GET"]) # This route works on postman
-# @login_required
+@login_required
 def allPost():
     
     #connect to database and fectch user posts
@@ -273,7 +254,7 @@ def allPost():
 
 #Set a like on the current Post by the logged user    
 @app.route('/api/post/<int:post_id>/like', methods=["POST"]) # This route works on postman
-#@login_required
+@login_required
 def addLike(post_id):
     
     if request.method == "POST":
@@ -295,10 +276,13 @@ def addLike(post_id):
             
 #______________________________ END Required API Routes ________________________________#
 
+
+
+
 #______________________________ Extra Feature API Routes ___________________________________#
 
 @app.route('/api/posts/<int:user_id>/likes', methods=["GET"])
-#@login_required
+@login_required
 def find_likes(user_id):
     
     send_likes = []
@@ -313,7 +297,7 @@ def find_likes(user_id):
     
 
 @app.route('/api/posts/<int:user_id>/follows', methods=["GET"])
-#@login_required
+@login_required
 def find_followers(user_id):
     
     followers = []
@@ -325,6 +309,7 @@ def find_followers(user_id):
         followers.append(data)
     
     return jsonify({"followers":followers})
+
 
 #####_______________________________________________________________________________________________#####
 

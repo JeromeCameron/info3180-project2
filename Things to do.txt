@@ -1,10 +1,10 @@
 #Add task here
 
-1. Implement logout
+1. Implement logout ------------------------------------------------------Completed
 
-2. Implement toggle login/logout
+2. Implement toggle login/logout ------------------------------------------------------Completed
 
-3. Implement toggle follow/following and button functionality to increase counter
+3. Implement toggle follow/following and button functionality to increase counter ------------------------------------------------------Completed
 
 4. MyProfile functionality for the logged in user: authenticated user's id must be passed into MyProfile component
 
@@ -13,4 +13,6 @@
 
 6. Find a better way to send user banner data for MyProfile component; currently, if a user has no posts their banner
         will be blank. This is because the banner data is sent with each posts' data
-7. Navbar not showing without a refresh when user logs in
+7. Navbar not showing without a refresh when user logs in ------------------------------------------------------Completed
+
+8. My Profile link not working when clicked form another users profile.

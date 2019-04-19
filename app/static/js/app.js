@@ -1,8 +1,13 @@
 /*global Vue*/
 /*global fetch*/
 /*global token*/
+/*global Event*/
+/*global localStorage*/
 /*global VueRouter*/
 
+window.Event = new Vue();
+
+//app header
 Vue.component('app-header', {
     template: `
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color:#8134d4">
@@ -11,40 +16,57 @@ Vue.component('app-header', {
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-    
+
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ml-auto">
-          
+
             <li class="nav-item active">
                 <router-link to="/" class="nav-link">Home</router-link>
             </li>
-              
+
             <li class="nav-item">
                 <router-link to="/explore" class="nav-link">Explore</router-link>
             </li>
-              
+
             <li class="nav-item">
-                <router-link :to="'/users/' + user_id.user_id" class="nav-link">My Profile</router-link>
+                <router-link :to="'/users/' + userid" class="nav-link">My Profile</router-link>
             </li>
-              
-            <li class="nav-item">
-                <router-link to="/login" class="nav-link">Login</router-link> <!--toggle login/logout for authenticated user-->
+
+            <li class="nav-item" v-if="login">
+                <router-link to="/logout" class="nav-link">Logout</router-link>
             </li>
-        
+            
+            <li class="nav-item" v-else>
+                <router-link to="/login" class="nav-link">Login</router-link>
+            </li>
+            
         </ul>
       </div>
     </nav>
     `,
+    created: function(){
+        
+        if(JSON.parse(sessionStorage.login_status)["login_status"]==true){
+            this.login = true;
+        }
+        
+        Event.$on('login_status', () =>{
+            this.login = JSON.parse(sessionStorage.login_status)["login_status"];
+            this.userid = JSON.parse(sessionStorage.user_id)["user_id"];
+        });
+    },
     
-    data: function() {
-        return {
-            user_id: JSON.parse(sessionStorage.user_id),
+    data: function(){
+        return{
+            login: false,
+            userid: ''
         };
-    }
+    },
 });
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 
+//app footer
 Vue.component('app-footer', {
     template: `
     <footer>
@@ -57,6 +79,8 @@ Vue.component('app-footer', {
 });
 
 // __________________________________________________________________________________________________________________________________________________________________________________
+
+//login page
 const Welcome = Vue.component('welcome', {
     template: `
     <div class="container">
@@ -88,6 +112,7 @@ const Welcome = Vue.component('welcome', {
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 
+//view all post
 const AllPosts = Vue.component('all-posts', {
     template: `
     <div class="post-container">
@@ -97,17 +122,22 @@ const AllPosts = Vue.component('all-posts', {
         <router-link to="/posts/new" class="btn btn-primary btn-addPost">New Post</router-link>
         <ul v-if="user_posts.length != 0">
             <li v-for="post in user_posts">
-                <div v-on:dblclick="add_like" class="post card" :id="post.id">
+                <div v-on:dblclick="add_like" class="post card explore_cards shadow-sm" :id="post.id">
+                
+                    <div class= "card-header">
                         <router-link :to="'/users/' + post.user_id" class="nav-link">
                             <h6 class="card-subtitle text-muted">
                                 <img :src= "'/static/uploads/' + post.prof_pic" class="tiny" />
                                 {{ post.username }}
                             </h6>
                         </router-link>
+                    </div>
+                    
                     <div class="post-body card-body">
                         <img :src="'/static/uploads/' + post.photo" class="post-img" />
                         <p class="card-text">{{ post.caption }}</p>
                     </div>
+                    
                     <div class="post-footer text-muted">
                         <p style="float:left;" v-if="like_history(post.id)">
                         <img src="/static/icons/like.png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
@@ -229,8 +259,8 @@ const AllPosts = Vue.component('all-posts', {
 });
 
 // __________________________________________________________________________________________________________________________________________________________________________________
-// Register a new user
 
+// Register a new user
 const ProfileForm = Vue.component('profile-form', {
     template: `
     <div class="container">
@@ -312,6 +342,7 @@ const ProfileForm = Vue.component('profile-form', {
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 
+//login a user
 const LoginForm = Vue.component('login-form', {
     template: `
     <div class="container">
@@ -337,6 +368,7 @@ const LoginForm = Vue.component('login-form', {
     data: function() {
         return {
             messages: [],
+            login_status: ''
         };
     },
     methods: {
@@ -368,30 +400,29 @@ const LoginForm = Vue.component('login-form', {
                     self.message = [];
                     router.push("explore");
                     // save user id in session
-                    sessionStorage.user_id= JSON.stringify({"user_id":jsonResponse.id});
-                    // logged_in = true; was tinking of using this to switch the login/logout in navbar but nah can delete
+                    sessionStorage.user_id = JSON.stringify({"user_id":jsonResponse.id});
+                    sessionStorage.login_status = JSON.stringify({"login_status": true});
+                    self.login_status = JSON.parse(sessionStorage.login_status)["login_status"];
+                    localStorage.JWT_token = JSON.stringify({"JWT_token":jsonResponse.token});
+                    Event.$emit('login_status', this.login_status);
                 }
             })
             .catch(function (error) {
                 console.log(error);
             });
-        },
+        }
     }
 });
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 
+//logout a user
 const Logout = Vue.component('logout', {
     template: `
     <div>
-        <h1 class="page-header">404 - Not Found</h1>
     </div>
     `,
-    data: function () {
-        return {};
-    },
-    methods: {
-        logout: function() {
+    created: function() {
         let self = this;
         
         fetch("/api/auth/logout", {
@@ -406,20 +437,33 @@ const Logout = Vue.component('logout', {
             })
             .then(function (jsonResponse) {
                 // display a success message
+                self.message.push(jsonResponse.message);
+                console.log(self.message);
                 console.log(jsonResponse);
-                sessionStorage.removeItem('user_id');
+                localStorage.removeItem('JWT_token');
+                sessionStorage.login_status = JSON.stringify({"login_status": false});
+                sessionStorage.user_id = JSON.stringify({"user_id": null});
+                Event.$emit('login_status', this.login_status);
                 router.push("/");
+                sessionStorage.removeItem('login_status');
+                sessionStorage.removeItem('user_id');
             })
             .catch(function (error) {
                 console.log(error);
             });
-        },
+        
+    },
+    data: function () {
+        return {
+            message: [],
+            login_status: ''
+        };
     }
 });
 
 // __________________________________________________________________________________________________________________________________________________________________________________
-// view a users profile
 
+// view a users profile
 const MyProfile = Vue.component('my-profile', {
     template: `
     <div class="container" id="prof_container">
@@ -430,31 +474,31 @@ const MyProfile = Vue.component('my-profile', {
         
             <div id="box0" class="d-flex justify-content-start flex-row">
                 <div id="box1">
-                    <img :src= "'/static/uploads/' + user_posts[0].prof_pic" class="profile_pic" />
+                    <img :src= "'/static/uploads/' + user.profile_photo" class="profile_pic" />
                 </div>
                 
                 <div id="box2">
-                        <h5 id="user_name" class="card-title">{{ user_posts[0].firstname }} {{ user_posts[0].lastname }}</h5>
-                        <p id="location">{{ user_posts[0].location }}</p>
-                        <p>Member since {{ user_posts[0].joined_on }}</p>
-                        <p>{{ user_posts[0].bio }}</p>
+                        <h5 id="user_name" class="card-title">{{ user.firstname }} {{ user.lastname }}</h5>
+                        <p id="location">{{ user.location }}</p>
+                        <p>Member since {{ user.joined_on }}</p>
+                        <p>{{ user.biography }}</p>
                 </div>
             </div>    
                 <div id="box3" class="d-flex justify-content-between flex-column">
                     <div class="d-flex justify-content-between flex-row">
                     
                         <div class="d-flex flex-column align-items-center">
-                            <h5>{{ user_posts[0].nPosts }}</h5>
+                            <h5>{{ user.nPosts }}</h5>
                             <h6>Posts</h6>
                         </div>
                         <div class="d-flex flex-column align-items-center">
-                            <h5 id="nfollowings">{{ user_posts[0].nFollows }}</h5>
+                            <h5 id="nfollowings">{{ user.nFollows }}</h5>
                             <h6>Followers</h6>
                         </div>
                         
                     </div>
                     
-                    <div v-if="followers(user_posts[0].user_id)">
+                    <div v-if="followers(user.user_id)">
                     <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
                     </div>
                     
@@ -480,15 +524,25 @@ const MyProfile = Vue.component('my-profile', {
     created: function() {
         let self = this;
         
+        //used to fetch user posts
         fetch("/api/users/" + this.user_id + "/posts")
         .then(function(response) {
             return response.json();
         })
         .then(function(jsonResponse) {
-            console.log(jsonResponse);
             self.user_posts = jsonResponse.user_posts;
         });
         
+        //used to fetch user info
+        fetch("/api/users/" + this.user_id)
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(jsonResponse) {
+            self.user = jsonResponse.user;
+        });
+        
+        //used to fetch follow relationships
         fetch("/api/posts/"+ this.logged_in_user +"/follows")
             
         .then(function(response) {
@@ -496,7 +550,6 @@ const MyProfile = Vue.component('my-profile', {
         })
         .then(function(jsonResponse) {
             self.follows_log=(jsonResponse.followers);
-            console.log(self.follows_log);
         });
     },
     
@@ -504,38 +557,21 @@ const MyProfile = Vue.component('my-profile', {
         return {
             user_id: this.$route.params.user_id,
             user_posts: [],
+            user: [],
             messages: [],
             logged_in_user: JSON.parse(sessionStorage.user_id)["user_id"],
             follows_log: []
         };
     },
     methods: {
-        // follow: function(event) {
-        //     let follow_btn;
-        //     this.user_posts[0].nFollows += 1;
-        //     follow_btn = document.getElementById("follow-btn");
-        //     follow_btn.innerHTML = "Following";
-        //     follow_btn.disabled = true;
-            
-            // Send follow to database
-            
-        // },
         
         add_follow: function(event){
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let follower_id = parseInt(id['user_id']);
             let user_id = parseInt(this.user_id);
-            
-            
-            let follow_btn;
-            // this.user_posts[0].nFollows += 1;
-            follow_btn = document.getElementById("follow-btn");
-            follow_btn.innerHTML = "Following";
-            follow_btn.disabled = true;
-            follow_num = document.getElementById("nfollowings");
-            
-            
+        
+            //Used to populate user follow relationships
             fetch("/api/users/"+ user_id +"/follow", {
             method: 'POST',
             body: JSON.stringify({follower_id: follower_id}),
@@ -555,7 +591,31 @@ const MyProfile = Vue.component('my-profile', {
                 if (jsonResponse.message) {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
+                    
+                    //-----Request updated records after succesful follow-------
+                    
+                    fetch("/api/users/" + this.user_id + "/posts")
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(jsonResponse) {
+                        console.log(jsonResponse);
+                        self.user_posts = jsonResponse.user_posts;
+                    });
+                    
+                    //----------------------- END ------------------------------
+                    
                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
+                    let follow_btn;
+                    // this.user_posts[0].nFollows += 1;
+                    follow_btn = document.getElementById("follow-btn");
+                    follow_btn.innerHTML = "Following";
+                    follow_btn.disabled = true;
+                    follow_num = document.getElementById("nfollowings");
+                }
+                else if(jsonResponse.info){
+                    self.messages.push(jsonResponse.info);
+                    document.getElementById("ul").setAttribute('class', 'alert alert-warning');
                 }
                 else {
                     self.messages = [];
@@ -569,34 +629,34 @@ const MyProfile = Vue.component('my-profile', {
                 console.log(error);
             });
             
+            // fetch("/api/users/"+ user_id +"/follow", {
+            // method: 'GET',
+            // body: {},
+            // headers: {
+            //     'X-CSRFToken': token,
+            //     'Content-Type': 'application/json'
+            // },
+            // credentials: 'same-origin'
             
-            fetch("/api/users/"+ user_id +"/follow", {
-            method: 'GET',
-            body: {},
-            headers: {
-                'X-CSRFToken': token,
-                'Content-Type': 'application/json'
-            },
-            credentials: 'same-origin'
-            
-            })
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (jsonResponse) {
-                // display a success/error message
-                console.log(jsonResponse);
+            // })
+            // .then(function (response) {
+            //     return response.json();
+            // })
+            // .then(function (jsonResponse) {
+            //     // display a success/error message
+            //     console.log(jsonResponse);
                 
-                follow_num.innerHTML = jsonResponse.followers;
+            //     follow_num.innerHTML = jsonResponse.followers;
                 
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
+            // })
+            // .catch(function (error) {
+            //     console.log(error);
+            // });
             
         },
         
-        //function checks if a user already follows another user.
+        //------------------------- followers func -----------------------------
+        //function checks if a user already follows current user.
         followers: function(follower_id){
             let self = this;
             
@@ -606,6 +666,7 @@ const MyProfile = Vue.component('my-profile', {
                 }
             }
         }
+        //----------------------- End followers func ---------------------------
     }
 });
 
@@ -773,6 +834,7 @@ const MyProfile = Vue.component('my-profile', {
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 
+//add new post
 const NewPost = Vue.component('new-post', {
     template: `
     <div class="container">
@@ -844,6 +906,7 @@ const NewPost = Vue.component('new-post', {
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 
+//not found route
 const NotFound = Vue.component('not-found', {
     template: `
     <div>
@@ -874,6 +937,7 @@ const router = new VueRouter({
 });
 
 // ____________________________________________________________________________
+
 // Instantiate our main Vue Instance
 let app = new Vue({
     el: "#app",
