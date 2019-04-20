@@ -1,3 +1,4 @@
+"use strict";
 /*global Vue*/
 /*global fetch*/
 /*global token*/
@@ -5,8 +6,9 @@
 /*global localStorage*/
 /*global VueRouter*/
 
+//used to send info/events between components
 window.Event = new Vue();
-
+//-------------------------------------------
 //app header
 Vue.component('app-header', {
     template: `
@@ -46,10 +48,13 @@ Vue.component('app-header', {
     `,
     created: function(){
         
+        //preserves data after page refresh
         if(JSON.parse(sessionStorage.login_status)["login_status"]==true){
             this.login = true;
+            this.userid = JSON.parse(sessionStorage.user_id)["user_id"];
         }
         
+        //event is triggered from login and logout route to change logout/login in nav-bar
         Event.$on('login_status', () =>{
             this.login = JSON.parse(sessionStorage.login_status)["login_status"];
             this.userid = JSON.parse(sessionStorage.user_id)["user_id"];
@@ -158,17 +163,27 @@ const AllPosts = Vue.component('all-posts', {
     created: function() {
         let self = this;
         
-        fetch('/api/posts')
+        fetch('/api/posts',{
+            'headers': {
+                'Content-Type':'application/json',
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+            }
+        })
         
         .then(function(response) {
             return response.json();
         })
         .then(function(jsonResponse) {
-            console.log(jsonResponse);
             self.user_posts=jsonResponse.user_posts;
         });
+        
         //--------------- fetch likes data for add feature used in like_history function ------------------
-        fetch("/api/posts/"+ this.logged_in_user +"/likes")
+        fetch("/api/posts/"+ this.logged_in_user +"/likes",{
+            'headers': {
+                'Content-Type':'application/json',
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+            }
+        })
             
         .then(function(response) {
             return response.json();
@@ -198,13 +213,15 @@ const AllPosts = Vue.component('all-posts', {
             let id = JSON.parse(sessionStorage.user_id);
             let user_id = parseInt(id['user_id']);
             self.post_id = event.currentTarget.id;
+            console.log(document.getElementById(this.post_id));
             
             fetch("/api/post/"+ this.post_id +"/like", {
             method: 'POST',
             body: JSON.stringify({user_id: user_id}),
             headers: {
                 'X-CSRFToken': token,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             },
             credentials: 'same-origin'
             
@@ -220,7 +237,12 @@ const AllPosts = Vue.component('all-posts', {
                     self.messages.push(jsonResponse.message);
                     
                     //run fetch again to update like count in real time
-                    fetch('/api/posts')
+                    fetch('/api/posts',{
+                        'headers': {
+                            'Content-Type':'application/json',
+                            'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+                        }
+                    })
         
                     .then(function(response) {
                         return response.json();
@@ -390,7 +412,7 @@ const LoginForm = Vue.component('login-form', {
             })
             .then(function (jsonResponse) {
                 // display a success message
-                console.log(jsonResponse);
+                console.log(jsonResponse.message);
                 // self.message = jsonResponse.error; 
 
                 if ('error' in jsonResponse){
@@ -399,12 +421,13 @@ const LoginForm = Vue.component('login-form', {
                 }else{
                     self.message = [];
                     router.push("explore");
+                    
                     // save user id in session
                     sessionStorage.user_id = JSON.stringify({"user_id":jsonResponse.id});
                     sessionStorage.login_status = JSON.stringify({"login_status": true});
                     self.login_status = JSON.parse(sessionStorage.login_status)["login_status"];
                     localStorage.JWT_token = JSON.stringify({"JWT_token":jsonResponse.token});
-                    Event.$emit('login_status', this.login_status);
+                    Event.$emit('login_status');
                 }
             })
             .catch(function (error) {
@@ -428,7 +451,7 @@ const Logout = Vue.component('logout', {
         fetch("/api/auth/logout", {
             method: 'GET',
             headers: {
-                'X-CSRFToken': token,
+                'X-CSRFToken': token
             },
             credentials: 'same-origin'
         })
@@ -439,11 +462,10 @@ const Logout = Vue.component('logout', {
                 // display a success message
                 self.message.push(jsonResponse.message);
                 console.log(self.message);
-                console.log(jsonResponse);
                 localStorage.removeItem('JWT_token');
                 sessionStorage.login_status = JSON.stringify({"login_status": false});
                 sessionStorage.user_id = JSON.stringify({"user_id": null});
-                Event.$emit('login_status', this.login_status);
+                Event.$emit('login_status');
                 router.push("/");
                 sessionStorage.removeItem('login_status');
                 sessionStorage.removeItem('user_id');
@@ -481,7 +503,7 @@ const MyProfile = Vue.component('my-profile', {
                         <h5 id="user_name" class="card-title">{{ user.firstname }} {{ user.lastname }}</h5>
                         <p id="location">{{ user.location }}</p>
                         <p>Member since {{ user.joined_on }}</p>
-                        <p>{{ user.biography }}</p>
+                        <p class="biography_text">{{ user.biography }}</p>
                 </div>
             </div>    
                 <div id="box3" class="d-flex justify-content-between flex-column">
@@ -525,7 +547,12 @@ const MyProfile = Vue.component('my-profile', {
         let self = this;
         
         //used to fetch user posts
-        fetch("/api/users/" + this.user_id + "/posts")
+        fetch("/api/users/" + this.user_id + "/posts",{
+            'headers': {
+                'Content-Type':'application/json',
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+            }
+        })
         .then(function(response) {
             return response.json();
         })
@@ -534,7 +561,12 @@ const MyProfile = Vue.component('my-profile', {
         });
         
         //used to fetch user info
-        fetch("/api/users/" + this.user_id)
+        fetch("/api/users/" + this.user_id,{
+            'headers': {
+                'Content-Type':'application/json',
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+            }
+        })
         .then(function(response) {
             return response.json();
         })
@@ -543,7 +575,12 @@ const MyProfile = Vue.component('my-profile', {
         });
         
         //used to fetch follow relationships
-        fetch("/api/posts/"+ this.logged_in_user +"/follows")
+        fetch("/api/posts/"+ this.logged_in_user +"/follows",{
+            'headers': {
+                'Content-Type':'application/json',
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+            }
+        })
             
         .then(function(response) {
             return response.json();
@@ -577,7 +614,8 @@ const MyProfile = Vue.component('my-profile', {
             body: JSON.stringify({follower_id: follower_id}),
             headers: {
                 'X-CSRFToken': token,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             },
             credentials: 'same-origin'
             
@@ -594,12 +632,16 @@ const MyProfile = Vue.component('my-profile', {
                     
                     //-----Request updated records after succesful follow-------
                     
-                    fetch("/api/users/" + this.user_id + "/posts")
+                    fetch("/api/users/" + this.user_id + "/posts",{
+                        'headers': {
+                            'Content-Type':'application/json',
+                            'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+                        }
+                    })
                     .then(function(response) {
                         return response.json();
                     })
                     .then(function(jsonResponse) {
-                        console.log(jsonResponse);
                         self.user_posts = jsonResponse.user_posts;
                     });
                     
@@ -611,7 +653,6 @@ const MyProfile = Vue.component('my-profile', {
                     follow_btn = document.getElementById("follow-btn");
                     follow_btn.innerHTML = "Following";
                     follow_btn.disabled = true;
-                    follow_num = document.getElementById("nfollowings");
                 }
                 else if(jsonResponse.info){
                     self.messages.push(jsonResponse.info);
@@ -628,34 +669,10 @@ const MyProfile = Vue.component('my-profile', {
             .catch(function (error) {
                 console.log(error);
             });
-            
-            // fetch("/api/users/"+ user_id +"/follow", {
-            // method: 'GET',
-            // body: {},
-            // headers: {
-            //     'X-CSRFToken': token,
-            //     'Content-Type': 'application/json'
-            // },
-            // credentials: 'same-origin'
-            
-            // })
-            // .then(function (response) {
-            //     return response.json();
-            // })
-            // .then(function (jsonResponse) {
-            //     // display a success/error message
-            //     console.log(jsonResponse);
-                
-            //     follow_num.innerHTML = jsonResponse.followers;
-                
-            // })
-            // .catch(function (error) {
-            //     console.log(error);
-            // });
-            
         },
         
         //------------------------- followers func -----------------------------
+        
         //function checks if a user already follows current user.
         followers: function(follower_id){
             let self = this;
@@ -669,168 +686,6 @@ const MyProfile = Vue.component('my-profile', {
         //----------------------- End followers func ---------------------------
     }
 });
-
-// const MyProfile = Vue.component('my-profile', {
-//     template: `
-//     <div class="container" id="prof_container">
-//         <ul id="ul" v-if="messages">
-//             <li v-for="message in messages" class="messages">{{ message }}</li>
-//         </ul>
-//         <div class="card d-flex justify-content-between flex-row" id="box_container">
-        
-//             <div id="box0" class="d-flex justify-content-start flex-row">
-//                 <div id="box1">
-//                     <img :src= "'/static/uploads/' + user_info.prof_pic" class="profile_pic" />
-//                 </div>
-                
-//                 <div id="box2">
-//                         <h5 id="user_name" class="card-title">{{ user_info.firstname }} {{ user_info.lastname }}</h5>
-//                         <p id="location">{{ user_info.location }}</p>
-//                         <p>Member since {{ user_info.joined_on }}</p>
-//                         <p>{{ user_info.bio }}</p>
-//                 </div>
-//             </div>    
-//                 <div id="box3" class="d-flex justify-content-between flex-column">
-//                     <div class="d-flex justify-content-between flex-row">
-                    
-//                         <div class="d-flex flex-column align-items-center">
-//                             <h5>{{ user_info.nPosts }}</h5>
-//                             <h6>Posts</h6>
-//                         </div>
-//                         <div class="d-flex flex-column align-items-center">
-//                             <h5 id="nfollowings">{{ user_info.nFollows }}</h5>
-//                             <h6>Followers</h6>
-//                         </div>
-                        
-//                     </div>
-//                     <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
-//                 </div>
-//         </div>
-        
-//         <ul v-if="user_posts.length != 0" class="d-flex flex-row flex-sm-wrap" id="post_list">
-//             <li v-for="post in user_posts" class="card">
-//                 <img :src="'/static/uploads/' + post.photo" class="card-img"/>
-//                 <div class="card-img-overlay"></div>
-//             </li>
-//         </ul>
-//         <div v-else>
-//             <p>Nothing to display yet</p>
-//             <router-link to="/posts/new" class="btn btn-primary">New Post</router-link>
-//         </div>
-//     </div>
-//     `,
-//     created: function() {
-//         let self = this;
-        
-//         fetch("/api/users/" + this.user_id + "/posts")
-//         .then(function(response) {
-//             return response.json();
-//         })
-//         .then(function(jsonResponse) {
-//             console.log(jsonResponse);
-//             self.user_posts = jsonResponse.user_posts;
-//             self.user_info = jsonResponse.user_info;
-//         });
-//     },
-//     data: function() {
-//         return {
-//             user_id: this.$route.params.user_id,
-//             user_posts: [],
-//             user_info: [],
-//             messages: []
-//         };
-//     },
-//     methods: {
-//         // follow: function(event) {
-//         //     let follow_btn;
-//         //     this.user_posts[0].nFollows += 1;
-//         //     follow_btn = document.getElementById("follow-btn");
-//         //     follow_btn.innerHTML = "Following";
-//         //     follow_btn.disabled = true;
-            
-//             // Send follow to database
-            
-//         // },
-        
-//         add_follow: function(event){
-//             let self = this;
-//             let id = JSON.parse(sessionStorage.user_id);
-//             let follower_id = parseInt(id['user_id']);
-//             let user_id = parseInt(this.user_id);
-            
-            
-//             let follow_btn;
-//             // this.user_posts[0].nFollows += 1;
-//             follow_btn = document.getElementById("follow-btn");
-//             follow_btn.innerHTML = "Following";
-//             follow_btn.disabled = true;
-//             follow_num = document.getElementById("nfollowings");
-            
-            
-//             fetch("/api/users/"+ user_id +"/follow", {
-//             method: 'POST',
-//             body: JSON.stringify({follower_id: follower_id}),
-//             headers: {
-//                 'X-CSRFToken': token,
-//                 'Content-Type': 'application/json'
-//             },
-//             credentials: 'same-origin'
-            
-//             })
-//             .then(function (response) {
-//                 return response.json();
-//             })
-//             .then(function (jsonResponse) {
-//                 // display a success/error message
-//                 console.log(jsonResponse);
-//                 if (jsonResponse.message) {
-//                     self.messages = [];
-//                     self.messages.push(jsonResponse.message);
-//                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
-//                 }
-//                 else {
-//                     self.messages = [];
-//                     for (var i = 0; i < jsonResponse.errors.length; i++) {
-//                         self.messages.push(jsonResponse.errors[i]);
-//                     }
-//                     document.getElementById("ul").setAttribute('class', 'alert alert-danger');
-//                 }
-//             })
-//             .catch(function (error) {
-//                 console.log(error);
-//             });
-            
-            
-//             fetch("/api/users/"+ user_id +"/follow", {
-//             method: 'GET',
-//             body: {},
-//             headers: {
-//                 'X-CSRFToken': token,
-//                 'Content-Type': 'application/json'
-//             },
-//             credentials: 'same-origin'
-            
-//             })
-//             .then(function (response) {
-//                 return response.json();
-//             })
-//             .then(function (jsonResponse) {
-//                 // display a success/error message
-//                 console.log(jsonResponse);
-                
-//                 follow_num.innerHTML = jsonResponse.followers;
-                
-//             })
-//             .catch(function (error) {
-//                 console.log(error);
-//             });
-            
-            
-            
-            
-//         }
-//     }
-// });
 
 // __________________________________________________________________________________________________________________________________________________________________________________
 
@@ -873,7 +728,8 @@ const NewPost = Vue.component('new-post', {
             method: 'POST',
             body: form_data,
             headers: {
-                'X-CSRFToken': token
+                'X-CSRFToken': token,
+                'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             },
             credentials: 'same-origin' 
         })

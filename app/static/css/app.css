@@ -180,7 +180,8 @@ ul.navbar-nav.ml-auto{
 #box2{
     width:500px;
     margin-left: 10px;
-    padding-left: 10px;
+    /*padding-left: 10px;*/
+    margin-right: 12px;
 }
 #box3{
     width: 180px;
@@ -225,6 +226,9 @@ ul.navbar-nav.ml-auto{
 #post_list .card-img, #post_list .card{
     width: 280px;
     height: 300px;
+}
+.biography_text{
+    font-size: 13px;
 }
     
 /*______________________________________________________________________________*/
