@@ -266,7 +266,7 @@ def total_followers(user_id):
 def allPost():
     
     #connect to database and fectch user posts
-    db_posts = Posts.query.order_by(Posts.created_on).all()
+    db_posts = Posts.query.order_by(Posts.created_on.desc()).all()
     user_posts = []
     
     for posts in db_posts:

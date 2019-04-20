@@ -213,7 +213,8 @@ const AllPosts = Vue.component('all-posts', {
             let id = JSON.parse(sessionStorage.user_id);
             let user_id = parseInt(id['user_id']);
             self.post_id = event.currentTarget.id;
-            console.log(document.getElementById(this.post_id));
+            // let this_post = (document.getElementById(this.post_id));
+            // console.log(this_post.getAttribute('p'));
             
             fetch("/api/post/"+ this.post_id +"/like", {
             method: 'POST',
@@ -629,10 +630,10 @@ const MyProfile = Vue.component('my-profile', {
                 if (jsonResponse.message) {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
+                    user_id = JSON.parse(sessionStorage.user_id)["user_id"];
                     
                     //-----Request updated records after succesful follow-------
-                    
-                    fetch("/api/users/" + this.user_id + "/posts",{
+                    fetch("/api/users/" + user_id + "/posts",{
                         'headers': {
                             'Content-Type':'application/json',
                             'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
