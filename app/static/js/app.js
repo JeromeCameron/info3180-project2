@@ -553,12 +553,14 @@ const MyProfile = Vue.component('my-profile', {
 
                     </div>
 
-                    <div v-if="followers(user.user_id)">
-                        <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
-                    </div>
-
-                    <div v-else>
-                        <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
+                    <div v-if="(logged_in_user!=user_id)">
+                        <div v-if="followers(user.user_id)">
+                            <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
+                        </div>
+    
+                        <div v-else>
+                            <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
+                        </div>
                     </div>
 
                 </div>
@@ -637,8 +639,6 @@ const MyProfile = Vue.component('my-profile', {
     methods: {
 
         add_follow: function(event){
-            event.preventDefault();
-
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let follower_id = parseInt(id['user_id']);
