@@ -12,7 +12,19 @@
         Currently for example, the link "http://info3180-project2-jimmy876.c9users.io:8080/users/500" renders a page
 
 6. Find a better way to send user banner data for MyProfile component; currently, if a user has no posts their banner
-        will be blank. This is because the banner data is sent with each posts' data
+        will be blank. This is because the banner data is sent with each posts' data ------------------------------------------------------Completed
+
 7. Navbar not showing without a refresh when user logs in ------------------------------------------------------Completed
 
 8. My Profile link not working when clicked form another users profile.
+
+9. Errors are only logged to the console when registering user is still redirected to the login page (db entry not created, which is good)
+        Display errors in the form and do not redirect ------------------------------------------------------Completed
+        
+10. Doubleclick in AllPosts should only operate on the card body, single click on the like icon and word 
+        in the card footer should also create a like ------------------------------------------------------Completed
+        
+11. Logo and Home nav links should go to explore when user is logged in ------------------------------------------------------Completed
+
+12. MyProfile and Explore nav links go to login page when not logged in
+        Logo and Home go to welcome page ------------------------------------------------------Completed

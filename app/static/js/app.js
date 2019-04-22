@@ -1,10 +1,11 @@
-"use strict";
 /*global Vue*/
 /*global fetch*/
 /*global token*/
 /*global Event*/
 /*global localStorage*/
 /*global VueRouter*/
+"use strict";
+
 
 //used to send info/events between components
 window.Event = new Vue();
@@ -37,30 +38,36 @@ Vue.component('app-header', {
             <li class="nav-item" v-if="login">
                 <router-link to="/logout" class="nav-link">Logout</router-link>
             </li>
-            
+
             <li class="nav-item" v-else>
                 <router-link to="/login" class="nav-link">Login</router-link>
             </li>
-            
+
         </ul>
       </div>
     </nav>
     `,
     created: function(){
-        
+
         //preserves data after page refresh
-        if(JSON.parse(sessionStorage.login_status)["login_status"]==true){
-            this.login = true;
-            this.userid = JSON.parse(sessionStorage.user_id)["user_id"];
+        //try-catch prevents Vue error in console which occurred because sessionStorage is empty until login
+        try {
+            if(JSON.parse(sessionStorage.login_status)["login_status"]==true){
+                this.login = true;
+                this.userid = JSON.parse(sessionStorage.user_id)["user_id"];
+            }
         }
-        
+        catch(err) {
+            this.login = false;
+        }
+
         //event is triggered from login and logout route to change logout/login in nav-bar
         Event.$on('login_status', () =>{
             this.login = JSON.parse(sessionStorage.login_status)["login_status"];
             this.userid = JSON.parse(sessionStorage.user_id)["user_id"];
         });
     },
-    
+
     data: function(){
         return{
             login: false,
@@ -76,8 +83,8 @@ Vue.component('app-footer', {
     template: `
     <footer>
         <p>Copyright &copy; Flask Inc.</p>
-        <div>Icons made by <a href="https://www.flaticon.com/authors/cole-bemis" title="Cole Bemis">Cole Bemis</a> from <a href="https://www.flaticon.com/" 		    
-        title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 		    
+        <div>Icons made by <a href="https://www.flaticon.com/authors/cole-bemis" title="Cole Bemis">Cole Bemis</a> from <a href="https://www.flaticon.com/"
+        title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"
         title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
     </footer>
     `
@@ -96,7 +103,7 @@ const Welcome = Vue.component('welcome', {
                     <img src="/static/uploads/welcome.jpg" class="card-img" alt="">
                   </div>
                 </div>
-                
+
                 <div class="card text-center greeting-card">
                   <div class="card-body">
                     <h5 class="card-title logo">
@@ -105,6 +112,7 @@ const Welcome = Vue.component('welcome', {
                     </h5>
                     <div id="delim"></div>
                     <p class="card-text text-left">Share photos of your favourite moments with friends, family and the world</p>
+                    <br>
                     <router-link to="/register" class="btn btn-primary">Register</router-link>
                     <router-link to="/login" class="btn btn-secondary">Login</router-link>
                   </div>
@@ -128,7 +136,7 @@ const AllPosts = Vue.component('all-posts', {
         <ul v-if="user_posts.length != 0">
             <li v-for="post in user_posts">
                 <div v-on:dblclick="add_like" class="post card explore_cards shadow-sm" :id="post.id">
-                
+
                     <div class= "card-header">
                         <router-link :to="'/users/' + post.user_id" class="nav-link">
                             <h6 class="card-subtitle text-muted">
@@ -137,19 +145,19 @@ const AllPosts = Vue.component('all-posts', {
                             </h6>
                         </router-link>
                     </div>
-                    
+
                     <div class="post-body card-body">
                         <img :src="'/static/uploads/' + post.photo" class="post-img" />
                         <p class="card-text">{{ post.caption }}</p>
                     </div>
-                    
+
                     <div class="post-footer text-muted">
                         <p style="float:left;" v-if="like_history(post.id)">
                         <img src="/static/icons/like.png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
-                        
+
                         <p style="float:left;" v-else>
                         <img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
-                        
+
                         <p style="float:right;">{{ post.created_on }}</p>
                     </div>
                 </div>
@@ -162,21 +170,21 @@ const AllPosts = Vue.component('all-posts', {
     `,
     created: function() {
         let self = this;
-        
+
         fetch('/api/posts',{
             'headers': {
                 'Content-Type':'application/json',
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             }
         })
-        
+
         .then(function(response) {
             return response.json();
         })
         .then(function(jsonResponse) {
             self.user_posts=jsonResponse.user_posts;
         });
-        
+
         //--------------- fetch likes data for add feature used in like_history function ------------------
         fetch("/api/posts/"+ this.logged_in_user +"/likes",{
             'headers': {
@@ -184,7 +192,7 @@ const AllPosts = Vue.component('all-posts', {
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             }
         })
-            
+
         .then(function(response) {
             return response.json();
         })
@@ -192,7 +200,7 @@ const AllPosts = Vue.component('all-posts', {
             self.likes_log=(jsonResponse.send_likes);
         });
     },
-    
+
     data: function() {
         return {
             user_posts: [],
@@ -203,19 +211,19 @@ const AllPosts = Vue.component('all-posts', {
             like_post: false
         };
     },
-    
+
     methods: {
 
         add_like: function(event){ //it works.....
             //event.preventDefault();
-            
+
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let user_id = parseInt(id['user_id']);
             self.post_id = event.currentTarget.id;
             // let this_post = (document.getElementById(this.post_id));
             // console.log(this_post.getAttribute('p'));
-            
+
             fetch("/api/post/"+ this.post_id +"/like", {
             method: 'POST',
             body: JSON.stringify({user_id: user_id}),
@@ -225,7 +233,7 @@ const AllPosts = Vue.component('all-posts', {
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             },
             credentials: 'same-origin'
-            
+
             })
             .then(function (response) {
                 return response.json();
@@ -236,7 +244,7 @@ const AllPosts = Vue.component('all-posts', {
                 if (jsonResponse.message) {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
-                    
+
                     //run fetch again to update like count in real time
                     fetch('/api/posts',{
                         'headers': {
@@ -244,7 +252,7 @@ const AllPosts = Vue.component('all-posts', {
                             'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
                         }
                     })
-        
+
                     .then(function(response) {
                         return response.json();
                     })
@@ -252,6 +260,21 @@ const AllPosts = Vue.component('all-posts', {
                         self.user_posts=jsonResponse.user_posts;
                     });
                     
+                     //--------------- fetch likes data for add feature used in like_history function ------------------
+                    fetch("/api/posts/"+ user_id +"/likes",{
+                        'headers': {
+                            'Content-Type':'application/json',
+                            'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+                        }
+                    })
+            
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(jsonResponse) {
+                        self.likes_log=(jsonResponse.send_likes);
+                    });
+
                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
                 }
                 else {
@@ -265,13 +288,12 @@ const AllPosts = Vue.component('all-posts', {
             .catch(function (error) {
                 console.log(error);
             });
-            
         },
-        
+
         //function checks if a user already liked a post and allows the like heart to change to red if post already liked.
         like_history: function(post_id){
             let self = this;
-            
+
             for(let x in this.likes_log){
                 if(post_id == this.likes_log[x].post_id){
                     return true;
@@ -322,9 +344,9 @@ const ProfileForm = Vue.component('profile-form', {
             </div>
             <div class="form-group">
                 <label for="photo">Photo</label>
-                <input type="file" name="photo" class="form-control">
+                <input type="file" name="photo" accept=".png, .jpg" class="form-control">
             </div>
-            
+
             <button type="submit" name="register" class="btn btn-secondary">Register</button>
         </form>
     </div>
@@ -339,7 +361,7 @@ const ProfileForm = Vue.component('profile-form', {
         let self = this;
         let profileForm = document.getElementById('profileForm');
         let form_data = new FormData(profileForm);
-        
+
         fetch("/api/users/register", {
             method: 'POST',
             body: form_data,
@@ -352,9 +374,19 @@ const ProfileForm = Vue.component('profile-form', {
                 return response.json();
             })
             .then(function (jsonResponse) {
-                // display a success/error message
+                // display a success message
                 console.log(jsonResponse);
-                router.push({path:'/login'});
+                if (jsonResponse.message) {
+                    console.log(jsonResponse);
+                    router.push({path:'/login'});
+                }
+                else {
+                    self.messages = [];
+                    for (var i = 0; i < jsonResponse.errors.length; i++) {
+                        self.messages.push(jsonResponse.errors[i]);
+                    }
+                    document.getElementById("ul").setAttribute('class', 'alert alert-danger');
+                }
             })
             .catch(function (error) {
                 console.log(error);
@@ -371,7 +403,7 @@ const LoginForm = Vue.component('login-form', {
     <div class="container">
         <h4>Login</h4>
         <form @submit.prevent="login" method='post' class="form" id="login">
-            <ul id="ul" v-if="messages.length > 0" class = "alert-danger">
+            <ul id="ul" v-if="messages.length > 0" class = "alert alert-danger">
                 <li class="messages">{{ messages }}</li>
             </ul>
             <div class="form-group">
@@ -382,7 +414,7 @@ const LoginForm = Vue.component('login-form', {
                 <label for="password">Password</label>
                 <input type="password" name="password" class="form-control" required>
             </div>
-            
+
             <button type="submit" name="login" class="btn btn-primary">Login</button>
             <router-link to="/register" class="btn btn-secondary">Register</router-link>
         </form>
@@ -399,7 +431,7 @@ const LoginForm = Vue.component('login-form', {
         let self = this;
         let loginForm = document.getElementById('login');
         let form_data = new FormData(loginForm);
-        
+
         fetch("/api/auth/login", {
             method: 'POST',
             body: form_data,
@@ -414,15 +446,15 @@ const LoginForm = Vue.component('login-form', {
             .then(function (jsonResponse) {
                 // display a success message
                 console.log(jsonResponse.message);
-                // self.message = jsonResponse.error; 
+                // self.message = jsonResponse.error;
 
                 if ('error' in jsonResponse){
-                    self.messages = jsonResponse.error; 
+                    self.messages = jsonResponse.error;
                     // router.push("login");
                 }else{
                     self.message = [];
                     router.push("explore");
-                    
+
                     // save user id in session
                     sessionStorage.user_id = JSON.stringify({"user_id":jsonResponse.id});
                     sessionStorage.login_status = JSON.stringify({"login_status": true});
@@ -448,7 +480,7 @@ const Logout = Vue.component('logout', {
     `,
     created: function() {
         let self = this;
-        
+
         fetch("/api/auth/logout", {
             method: 'GET',
             headers: {
@@ -474,7 +506,7 @@ const Logout = Vue.component('logout', {
             .catch(function (error) {
                 console.log(error);
             });
-        
+
     },
     data: function () {
         return {
@@ -494,22 +526,22 @@ const MyProfile = Vue.component('my-profile', {
             <li v-for="message in messages" class="messages">{{ message }}</li>
         </ul>
         <div class="card d-flex justify-content-between flex-row" id="box_container">
-        
+
             <div id="box0" class="d-flex justify-content-start flex-row">
                 <div id="box1">
                     <img :src= "'/static/uploads/' + user.profile_photo" class="profile_pic" />
                 </div>
-                
+
                 <div id="box2">
                         <h5 id="user_name" class="card-title">{{ user.firstname }} {{ user.lastname }}</h5>
                         <p id="location">{{ user.location }}</p>
                         <p>Member since {{ user.joined_on }}</p>
                         <p class="biography_text">{{ user.biography }}</p>
                 </div>
-            </div>    
+            </div>
                 <div id="box3" class="d-flex justify-content-between flex-column">
                     <div class="d-flex justify-content-between flex-row">
-                    
+
                         <div class="d-flex flex-column align-items-center">
                             <h5>{{ user.nPosts }}</h5>
                             <h6>Posts</h6>
@@ -518,20 +550,20 @@ const MyProfile = Vue.component('my-profile', {
                             <h5 id="nfollowings">{{ user.nFollows }}</h5>
                             <h6>Followers</h6>
                         </div>
-                        
+
                     </div>
-                    
+
                     <div v-if="followers(user.user_id)">
-                    <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
+                        <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
                     </div>
-                    
+
                     <div v-else>
-                    <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
+                        <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
                     </div>
-                    
+
                 </div>
         </div>
-        
+
         <ul v-if="user_posts.length != 0" class="d-flex flex-row flex-sm-wrap" id="post_list">
             <li v-for="post in user_posts" class="card">
                 <img :src="'/static/uploads/' + post.photo" class="card-img"/>
@@ -546,9 +578,9 @@ const MyProfile = Vue.component('my-profile', {
     `,
     created: function() {
         let self = this;
-        
+
         //used to fetch user posts
-        fetch("/api/users/" + this.user_id + "/posts",{
+        fetch("/api/users/" + this.user_id + "/posts", {
             'headers': {
                 'Content-Type':'application/json',
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
@@ -560,9 +592,9 @@ const MyProfile = Vue.component('my-profile', {
         .then(function(jsonResponse) {
             self.user_posts = jsonResponse.user_posts;
         });
-        
+
         //used to fetch user info
-        fetch("/api/users/" + this.user_id,{
+        fetch("/api/users/" + this.user_id, {
             'headers': {
                 'Content-Type':'application/json',
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
@@ -574,7 +606,7 @@ const MyProfile = Vue.component('my-profile', {
         .then(function(jsonResponse) {
             self.user = jsonResponse.user;
         });
-        
+
         //used to fetch follow relationships
         fetch("/api/posts/"+ this.logged_in_user +"/follows",{
             'headers': {
@@ -582,7 +614,7 @@ const MyProfile = Vue.component('my-profile', {
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             }
         })
-            
+
         .then(function(response) {
             return response.json();
         })
@@ -590,7 +622,7 @@ const MyProfile = Vue.component('my-profile', {
             self.follows_log=(jsonResponse.followers);
         });
     },
-    
+
     data: function() {
         return {
             user_id: this.$route.params.user_id,
@@ -602,13 +634,13 @@ const MyProfile = Vue.component('my-profile', {
         };
     },
     methods: {
-        
+
         add_follow: function(event){
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let follower_id = parseInt(id['user_id']);
             let user_id = parseInt(this.user_id);
-        
+
             //Used to populate user follow relationships
             fetch("/api/users/"+ user_id +"/follow", {
             method: 'POST',
@@ -619,7 +651,7 @@ const MyProfile = Vue.component('my-profile', {
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             },
             credentials: 'same-origin'
-            
+
             })
             .then(function (response) {
                 return response.json();
@@ -630,8 +662,8 @@ const MyProfile = Vue.component('my-profile', {
                 if (jsonResponse.message) {
                     self.messages = [];
                     self.messages.push(jsonResponse.message);
-                    user_id = JSON.parse(sessionStorage.user_id)["user_id"];
-                    
+                    // let users_id = JSON.parse(sessionStorage.user_id)["user_id"];
+
                     //-----Request updated records after succesful follow-------
                     fetch("/api/users/" + user_id + "/posts",{
                         'headers': {
@@ -645,17 +677,18 @@ const MyProfile = Vue.component('my-profile', {
                     .then(function(jsonResponse) {
                         self.user_posts = jsonResponse.user_posts;
                     });
-                    
+
                     //----------------------- END ------------------------------
-                    
+
                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
-                    let follow_btn;
+                    // let follow_btn;
                     // this.user_posts[0].nFollows += 1;
-                    follow_btn = document.getElementById("follow-btn");
-                    follow_btn.innerHTML = "Following";
-                    follow_btn.disabled = true;
+                    // follow_btn = document.getElementById("follow-btn"); no need to disable btn since a msg is flashed when logged in user already following someone
+                    // follow_btn.innerHTML = "Following";
+                    // follow_btn.disabled = true;
                 }
                 else if(jsonResponse.info){
+                    self.messages = [];
                     self.messages.push(jsonResponse.info);
                     document.getElementById("ul").setAttribute('class', 'alert alert-warning');
                 }
@@ -671,13 +704,13 @@ const MyProfile = Vue.component('my-profile', {
                 console.log(error);
             });
         },
-        
+
         //------------------------- followers func -----------------------------
-        
+
         //function checks if a user already follows current user.
         followers: function(follower_id){
             let self = this;
-            
+
             for(let x in this.follows_log){
                 if(follower_id == this.follows_log[x].user_id){
                     return true;
@@ -701,13 +734,13 @@ const NewPost = Vue.component('new-post', {
             </ul>
             <div class="form-group">
                 <label for="photo">Upload Photo</label>
-                <input class="form-control" type="file" name="photo" accept="image/*">
+                <input class="form-control" type="file" name="photo" accept=".png, .jpg">
             </div>
             <div class="form-group">
                 <label for="caption">Caption</label>
-                <textarea name="caption" class="form-control"></textarea>
+                <textarea name="caption" class="form-control" required></textarea>
             </div>
-            
+
             <button type="submit" name="post" class="btn btn-secondary">Post</button>
         </form>
     </div>
@@ -724,7 +757,7 @@ const NewPost = Vue.component('new-post', {
         let form_data = new FormData(postForm);
         let id = JSON.parse(sessionStorage.user_id);
         let user_id = id['user_id'];
-        
+
         fetch("/api/users/"+ user_id +"/posts", {
             method: 'POST',
             body: form_data,
@@ -732,7 +765,7 @@ const NewPost = Vue.component('new-post', {
                 'X-CSRFToken': token,
                 'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
             },
-            credentials: 'same-origin' 
+            credentials: 'same-origin'
         })
             .then(function (response) {
                 return response.json();
