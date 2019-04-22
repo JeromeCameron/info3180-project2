@@ -621,6 +621,7 @@ const MyProfile = Vue.component('my-profile', {
         .then(function(jsonResponse) {
             self.follows_log=(jsonResponse.followers);
         });
+        
     },
 
     data: function() {
@@ -636,6 +637,8 @@ const MyProfile = Vue.component('my-profile', {
     methods: {
 
         add_follow: function(event){
+            event.preventDefault();
+
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let follower_id = parseInt(id['user_id']);
@@ -677,6 +680,22 @@ const MyProfile = Vue.component('my-profile', {
                     .then(function(jsonResponse) {
                         self.user_posts = jsonResponse.user_posts;
                     });
+                    
+                    
+                    fetch("/api/posts/"+ follower_id +"/follows",{
+                        'headers': {
+                            'Content-Type':'application/json',
+                            'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+                        }
+                    })
+            
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(jsonResponse) {
+                        self.follows_log=(jsonResponse.followers);
+                    });
+                    
 
                     //----------------------- END ------------------------------
 
@@ -703,6 +722,8 @@ const MyProfile = Vue.component('my-profile', {
             .catch(function (error) {
                 console.log(error);
             });
+            
+            
         },
 
         //------------------------- followers func -----------------------------
