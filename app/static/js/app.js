@@ -135,7 +135,7 @@ const AllPosts = Vue.component('all-posts', {
         <router-link to="/posts/new" class="btn btn-primary btn-addPost">New Post</router-link>
         <ul v-if="user_posts.length != 0">
             <li v-for="post in user_posts">
-                <div v-on:dblclick="add_like" class="post card explore_cards shadow-sm" :id="post.id">
+                <div class="post card explore_cards shadow-sm" :id="post.id">
 
                     <div class= "card-header">
                         <router-link :to="'/users/' + post.user_id" class="nav-link">
@@ -147,16 +147,16 @@ const AllPosts = Vue.component('all-posts', {
                     </div>
 
                     <div class="post-body card-body">
-                        <img :src="'/static/uploads/' + post.photo" class="post-img" />
+                        <img :src="'/static/uploads/' + post.photo" class="post-img" v-on:dblclick="add_like" :id="post.id"/>
                         <p class="card-text">{{ post.caption }}</p>
                     </div>
 
                     <div class="post-footer text-muted">
                         <p style="float:left;" v-if="like_history(post.id)">
-                        <img src="/static/icons/like.png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
+                        <img src="/static/icons/like.png" width="25" height="25" class="d-inline-block align-top" alt="" v-on:click="add_like" :id="post.id"> {{ post.likes }} likes</p>
 
                         <p style="float:left;" v-else>
-                        <img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt=""> {{ post.likes }} likes</p>
+                        <img src="/static/icons/like (3).png" width="25" height="25" class="d-inline-block align-top" alt="" v-on:click="add_like" :id="post.id"> {{ post.likes }} likes</p>
 
                         <p style="float:right;">{{ post.created_on }}</p>
                     </div>
