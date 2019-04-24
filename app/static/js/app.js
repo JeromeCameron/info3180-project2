@@ -574,7 +574,7 @@ const MyProfile = Vue.component('my-profile', {
         </ul>
         <div v-else>
             <p>Nothing to display yet</p>
-            <router-link to="/posts/new" class="btn btn-primary">New Post</router-link>
+            <router-link to="/posts/new" v-if="(logged_in_user==user_id)" class="btn btn-primary">New Post</router-link>
         </div>
     </div>
     `,
