@@ -553,7 +553,7 @@ const MyProfile = Vue.component('my-profile', {
 
                     </div>
 
-                    <div v-if="(logged_in_user!=user_id)">
+                    <div v-if="(logged_in_user!=user_id)" id="folldiv">
                         <div v-if="followers(user.user_id)">
                             <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
                         </div>
