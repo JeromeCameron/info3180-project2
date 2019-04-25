@@ -214,15 +214,14 @@ const AllPosts = Vue.component('all-posts', {
 
     methods: {
 
-        add_like: function(event){ //it works.....
+        add_like: function(event){ 
             //event.preventDefault();
 
             let self = this;
             let id = JSON.parse(sessionStorage.user_id);
             let user_id = parseInt(id['user_id']);
             self.post_id = event.currentTarget.id;
-            // let this_post = (document.getElementById(this.post_id));
-            // console.log(this_post.getAttribute('p'));
+            
 
             fetch("/api/post/"+ this.post_id +"/like", {
             method: 'POST',
@@ -539,31 +538,31 @@ const MyProfile = Vue.component('my-profile', {
                         <p class="biography_text">{{ user.biography }}</p>
                 </div>
             </div>
-                <div id="box3" class="d-flex justify-content-between flex-column">
-                    <div class="d-flex justify-content-between flex-row">
+            <div id="box3" class="d-flex justify-content-between flex-column">
+                <div class="d-flex justify-content-between flex-row">
 
-                        <div class="d-flex flex-column align-items-center">
-                            <h5>{{ user.nPosts }}</h5>
-                            <h6>Posts</h6>
-                        </div>
-                        <div class="d-flex flex-column align-items-center">
-                            <h5 id="nfollowings">{{ user.nFollows }}</h5>
-                            <h6>Followers</h6>
-                        </div>
-
+                    <div class="d-flex flex-column align-items-center">
+                        <h5>{{ user.nPosts }}</h5>
+                        <h6>Posts</h6>
                     </div>
-
-                    <div v-if="(logged_in_user!=user_id)" id="folldiv">
-                        <div v-if="followers(user.user_id)">
-                            <button class="btn btn-primary" id="follow-btn" @click="add_follow">Following</button>
-                        </div>
-    
-                        <div v-else>
-                            <button class="btn btn-secondary" id="follow-btn" @click="add_follow">Follow</button>
-                        </div>
+                    <div class="d-flex flex-column align-items-center">
+                        <h5 id="nfollowings">{{ user.nFollows }}</h5>
+                        <h6>Followers</h6>
                     </div>
 
                 </div>
+
+                <div v-if="(logged_in_user!=user_id)" id="folldiv">
+                    <div v-if="followers(user.user_id)">
+                        <button class="btn btn-primary" id="follow-btn" v-on:click="add_follow">Following</button>
+                    </div>
+
+                    <div v-else>
+                        <button class="btn btn-secondary" id="follow-btn" v-on:click="add_follow">Follow</button>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
         <ul v-if="user_posts.length != 0" class="d-flex flex-row flex-sm-wrap" id="post_list">
@@ -681,7 +680,7 @@ const MyProfile = Vue.component('my-profile', {
                         self.user_posts = jsonResponse.user_posts;
                     });
                     
-                    
+                    //--------Update the follow log----------
                     fetch("/api/posts/"+ follower_id +"/follows",{
                         'headers': {
                             'Content-Type':'application/json',
@@ -696,6 +695,20 @@ const MyProfile = Vue.component('my-profile', {
                         self.follows_log=(jsonResponse.followers);
                     });
                     
+                    //--------Update the follow number----------
+                    fetch("/api/users/"+ user_id +"/follow",{
+                        'headers': {
+                            'Content-Type':'application/json',
+                            'Authorization': 'Bearer ' + JSON.parse(localStorage.JWT_token)["JWT_token"]
+                        }
+                    })
+            
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(jsonResponse) {
+                        self.user.nFollows=parseInt(jsonResponse.followers);
+                    });
 
                     //----------------------- END ------------------------------
 

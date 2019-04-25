@@ -6,7 +6,7 @@
 
 3. Implement toggle follow/following and button functionality to increase counter ------------------------------------------------------Completed
 
-4. MyProfile functionality for the logged in user: authenticated user's id must be passed into MyProfile component
+4. MyProfile functionality for the logged in user: authenticated user's id must be passed into MyProfile component ------------------------------------------------------Completed
 
 5. Display 404 page for user id's that do not exist;
         Currently for example, the link "http://info3180-project2-jimmy876.c9users.io:8080/users/500" renders a page
@@ -16,7 +16,7 @@
 
 7. Navbar not showing without a refresh when user logs in ------------------------------------------------------Completed
 
-8. My Profile link not working when clicked form another users profile.
+8. My Profile link not working when clicked form another users profile. ------------------------------------------------------Completed
 
 9. Errors are only logged to the console when registering user is still redirected to the login page (db entry not created, which is good)
         Display errors in the form and do not redirect ------------------------------------------------------Completed
@@ -28,3 +28,5 @@
 
 12. MyProfile and Explore nav links go to login page when not logged in
         Logo and Home go to welcome page ------------------------------------------------------Completed
+        
+13. Increment follower counter without refresh
