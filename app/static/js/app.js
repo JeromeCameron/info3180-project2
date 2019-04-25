@@ -27,12 +27,18 @@ Vue.component('app-header', {
                 <router-link to="/" class="nav-link">Home</router-link>
             </li>
 
-            <li class="nav-item">
+            <li class="nav-item" v-if="login">
                 <router-link to="/explore" class="nav-link">Explore</router-link>
             </li>
+            <li class="nav-item" v-else>
+                <router-link to="/login" class="nav-link">Explore</router-link>
+            </li>
 
-            <li class="nav-item">
+            <li class="nav-item" v-if="login">
                 <router-link :to="'/users/' + userid" class="nav-link">My Profile</router-link>
+            </li>
+            <li class="nav-item" v-else>
+                <router-link to="/login" class="nav-link">My Profile</router-link>
             </li>
 
             <li class="nav-item" v-if="login">
