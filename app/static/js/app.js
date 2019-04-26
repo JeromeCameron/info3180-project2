@@ -6,7 +6,6 @@
 /*global VueRouter*/
 "use strict";
 
-
 //used to send info/events between components
 window.Event = new Vue();
 //-------------------------------------------
@@ -14,16 +13,28 @@ window.Event = new Vue();
 Vue.component('app-header', {
     template: `
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color:#8134d4">
-      <router-link to="/" class="navbar-brand"><img src="/static/icons/photograph.png" width="25" height="25" class="d-inline-block align-top" alt="">
-      Photogram</router-link>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+        <div v-if="login==false"> 
+            <router-link to="/" class="navbar-brand"><img src="/static/icons/photograph.png" width="25" height="25" class="d-inline-block align-top" alt="">
+                Photogram</router-link>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div v-else="login==true"> 
+            <router-link to="/explore" class="navbar-brand"><img src="/static/icons/photograph.png" width="25" height="25" class="d-inline-block align-top" alt="">
+                Photogram</router-link>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ml-auto">
 
-            <li class="nav-item active">
+            <li class="nav-item active" v-if="login">
+                <router-link to="/explore" class="nav-link">Home</router-link>
+            </li>
+            <li class="nav-item active" v-else>
                 <router-link to="/" class="nav-link">Home</router-link>
             </li>
 
@@ -48,7 +59,6 @@ Vue.component('app-header', {
             <li class="nav-item" v-else>
                 <router-link to="/login" class="nav-link">Login</router-link>
             </li>
-
         </ul>
       </div>
     </nav>
@@ -136,7 +146,7 @@ const AllPosts = Vue.component('all-posts', {
     template: `
     <div class="post-container">
         <ul id="ul" v-if="messages">
-                <li v-for="message in messages" class="messages">{{ message }}</li>
+            <li v-for="message in messages" class="messages">{{ message }}</li>
         </ul>
         <router-link to="/posts/new" class="btn btn-primary btn-addPost">New Post</router-link>
         <ul v-if="user_posts.length != 0">
@@ -299,8 +309,8 @@ const AllPosts = Vue.component('all-posts', {
         like_history: function(post_id){
             let self = this;
 
-            for(let x in this.likes_log){
-                if(post_id == this.likes_log[x].post_id){
+            for(let x in self.likes_log){
+                if(post_id == self.likes_log[x].post_id){
                     return true;
                 }
             }
@@ -531,7 +541,6 @@ const MyProfile = Vue.component('my-profile', {
             <li v-for="message in messages" class="messages">{{ message }}</li>
         </ul>
         <div class="card d-flex justify-content-between flex-row" id="box_container">
-
             <div id="box0" class="d-flex justify-content-start flex-row">
                 <div id="box1">
                     <img :src= "'/static/uploads/' + user.profile_photo" class="profile_pic" />
@@ -558,7 +567,7 @@ const MyProfile = Vue.component('my-profile', {
 
                 </div>
 
-                <div v-if="(logged_in_user!=user_id)" id="folldiv">
+                <div v-if="(logged_in_user!=user_id)">
                     <div v-if="followers(user.user_id)">
                         <button class="btn btn-primary" id="follow-btn" v-on:click="add_follow">Following</button>
                     </div>
@@ -567,7 +576,6 @@ const MyProfile = Vue.component('my-profile', {
                         <button class="btn btn-secondary" id="follow-btn" v-on:click="add_follow">Follow</button>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -719,11 +727,6 @@ const MyProfile = Vue.component('my-profile', {
                     //----------------------- END ------------------------------
 
                     document.getElementById("ul").setAttribute('class', 'alert alert-success');
-                    // let follow_btn;
-                    // this.user_posts[0].nFollows += 1;
-                    // follow_btn = document.getElementById("follow-btn"); no need to disable btn since a msg is flashed when logged in user already following someone
-                    // follow_btn.innerHTML = "Following";
-                    // follow_btn.disabled = true;
                 }
                 else if(jsonResponse.info){
                     self.messages = [];
@@ -751,8 +754,8 @@ const MyProfile = Vue.component('my-profile', {
         followers: function(follower_id){
             let self = this;
 
-            for(let x in this.follows_log){
-                if(follower_id == this.follows_log[x].user_id){
+            for(let x in self.follows_log){
+                if(follower_id == self.follows_log[x].user_id){
                     return true;
                 }
             }

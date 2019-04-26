@@ -29,4 +29,4 @@
 12. MyProfile and Explore nav links go to login page when not logged in
         Logo and Home go to welcome page ------------------------------------------------------Completed
         
-13. Increment follower counter without refresh
+13. Increment follower counter without refresh ------------------------------------------------------Completed
